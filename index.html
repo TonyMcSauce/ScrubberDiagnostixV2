@@ -2,11 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>ScrubberDiagnostix v4 — Jwaneng Mine</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<meta name="theme-color" content="#181816"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="ScrubberDx"/>
+<meta name="description" content="Hydrostatic drive fault reference — SP750 pump and CA 100-100 motors"/>
+<title>ScrubberDiagnostix v6 — Jwaneng Mine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet"/>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
+/* ══════════════════════════════════════════════════════
+   TOKENS
+══════════════════════════════════════════════════════ */
 :root{
   --bg:#EDEAE2;
   --surface:#F6F3EE;
@@ -21,166 +30,401 @@
   --blue:#0D4B96;--blue-bg:#E5EEFB;
   --mono:'Space Mono',monospace;
   --head:'Barlow Condensed',sans-serif;
+  /* fluid type scale */
+  --fs-xs: clamp(8px, 1.8vw, 10px);
+  --fs-sm: clamp(10px, 2.2vw, 12px);
+  --fs-base: clamp(13px, 2.8vw, 15px);
+  --fs-md: clamp(14px, 3vw, 16px);
+  --fs-lg: clamp(16px, 3.5vw, 20px);
+  --fs-xl: clamp(18px, 4vw, 24px);
+  /* touch targets */
+  --tap: 48px;
+  --gap: clamp(8px, 2vw, 14px);
+  --pad: clamp(10px, 2.5vw, 16px);
 }
 
-html,body{font-family:var(--head);color:var(--ink);background:var(--bg);min-height:100vh;}
+/* ══ RESET ══ */
+*{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+body{
+  font-family:var(--head);
+  color:var(--ink);
+  background:var(--bg);
+  min-height:100vh;
+  min-height:100dvh;
+  overscroll-behavior:none;
+}
 
 /* ══ TITLE BAR ══ */
 .titlebar{
   background:var(--ink);
-  padding:10px 16px;
-  display:flex;align-items:flex-start;justify-content:space-between;
-  gap:12px;
+  padding:10px var(--pad);
+  padding-top:max(10px, env(safe-area-inset-top, 10px));
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
   border-bottom:3px solid var(--bdr);
+  position:sticky;
+  top:0;
+  z-index:100;
 }
-.t-name{font-weight:800;font-size:20px;color:#fff;letter-spacing:.08em;text-transform:uppercase;line-height:1;}
-.t-sub{font-family:var(--mono);font-size:9px;color:#666;letter-spacing:.1em;margin-top:4px;text-transform:uppercase;}
+.t-name{
+  font-weight:800;
+  font-size:var(--fs-xl);
+  color:#fff;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+  line-height:1;
+}
+.t-sub{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  color:#666;
+  letter-spacing:.08em;
+  margin-top:4px;
+  text-transform:uppercase;
+  line-height:1.5;
+}
 .title-meta{text-align:right;flex-shrink:0;}
-.t-units{font-family:var(--mono);font-size:9px;color:#777;letter-spacing:.06em;line-height:1.7;}
-.t-copy{font-family:var(--mono);font-size:9px;color:#555;letter-spacing:.04em;margin-top:3px;}
+.t-units{font-family:var(--mono);font-size:var(--fs-xs);color:#777;line-height:1.7;}
+.t-copy{font-family:var(--mono);font-size:var(--fs-xs);color:#555;margin-top:3px;}
 
-/* ══ DESKTOP LAYOUT: 20/80 split ══ */
-.layout{
+/* ══ APP SHELL ══ */
+.app-shell{
   display:grid;
-  grid-template-columns:20% 80%;
-  min-height:calc(100vh - 62px);
-  border:2px solid var(--bdr);
-  border-top:none;
-  background:var(--surface);
+  grid-template-columns:clamp(200px,24%,300px) 1fr;
+  height:calc(100vh - var(--titlebar-h,58px));
+  height:calc(100dvh - var(--titlebar-h,58px));
+  overflow:hidden;
 }
 
-/* ══ LEFT PANEL ══ */
+/* ══ LEFT PANEL — SYMPTOM SELECTOR ══ */
 .col-left{
   border-right:2px solid var(--bdr);
-  display:flex;flex-direction:column;
+  display:flex;
+  flex-direction:column;
   background:var(--surface);
+  overflow:hidden;
 }
 .col-hdr{
-  padding:10px 12px;background:var(--ink);
+  padding:10px var(--pad);
+  background:var(--ink);
   border-bottom:2px solid var(--bdr);
-  display:flex;align-items:center;justify-content:space-between;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-shrink:0;
+  min-height:var(--tap);
+}
+.col-hdr-txt{
+  font-weight:700;
+  font-size:var(--fs-sm);
+  color:#fff;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.col-hdr-badge{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  color:#EF9F27;
+  padding:3px 8px;
+  border:1px solid #EF9F27;
+  white-space:nowrap;
+}
+.multi-tip{
+  padding:6px var(--pad);
+  background:var(--amber-bg);
+  border-bottom:1px solid var(--amber-mid);
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  color:var(--amber);
+  line-height:1.5;
   flex-shrink:0;
 }
-.col-hdr-txt{font-weight:700;font-size:12px;color:#fff;letter-spacing:.12em;text-transform:uppercase;}
-.col-hdr-badge{
-  font-family:var(--mono);font-size:9px;color:#EF9F27;
-  padding:2px 7px;border:1px solid #EF9F27;
+.sym-scroll{
+  flex:1;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
 }
-
-.multi-tip{
-  padding:7px 12px;background:var(--amber-bg);
-  border-bottom:1px solid var(--amber-mid);
-  font-family:var(--mono);font-size:9px;color:var(--amber);
-  letter-spacing:.03em;line-height:1.5;flex-shrink:0;
-}
-
-.sym-scroll{flex:1;overflow-y:auto;}
-
 .cat-strip{
-  padding:6px 12px 4px;
-  font-family:var(--mono);font-size:9px;letter-spacing:.12em;
-  color:var(--ink3);text-transform:uppercase;
+  padding:6px var(--pad) 4px;
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  letter-spacing:.12em;
+  color:var(--ink3);
+  text-transform:uppercase;
   background:var(--bg);
   border-bottom:1px solid var(--blight);
   border-top:1px solid var(--blight);
   font-weight:700;
 }
-
 .sym-item{
-  padding:10px 12px;border-bottom:1px solid var(--blight);
-  cursor:pointer;display:flex;align-items:flex-start;gap:9px;
-  transition:background .12s;
+  padding:11px var(--pad);
+  border-bottom:1px solid var(--blight);
+  cursor:pointer;
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  min-height:var(--tap);
+  transition:background .1s;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
 }
 .sym-item:hover{background:var(--amber-bg);}
 .sym-item.sel{background:var(--ink);}
-.sym-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;}
-.sym-label{font-size:13px;font-weight:700;line-height:1.35;}
+.sym-item:active{opacity:.85;}
+.sym-dot{
+  width:9px;height:9px;border-radius:50%;
+  margin-top:4px;flex-shrink:0;
+}
+.sym-label{
+  font-size:var(--fs-base);
+  font-weight:700;
+  line-height:1.35;
+}
 .sym-item.sel .sym-label{color:#fff;}
 .sym-chip{
-  font-family:var(--mono);font-size:8px;padding:2px 6px;
-  margin-top:4px;display:inline-block;border-radius:2px;
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  padding:2px 7px;
+  margin-top:4px;
+  display:inline-block;
+  border-radius:2px;
+}
+
+/* Action Control Area at bottom of left column */
+.panel-actions {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-top: 2px solid var(--bdr);
+  flex-shrink: 0;
+}
+.calc-btn {
+  width: 100%;
+  padding: 14px var(--pad);
+  background: var(--red);
+  color: #fff;
+  border: none;
+  font-family: var(--head);
+  font-size: var(--fs-md);
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .1s;
+  min-height: var(--tap);
+}
+.calc-btn:hover { background: var(--red-mid); }
+.calc-btn:active { opacity: 0.9; }
+.calc-btn:disabled {
+  background: var(--blight);
+  color: var(--ink3);
+  cursor: not-allowed;
 }
 
 .clear-btn{
-  width:100%;padding:10px 12px;background:none;border:none;
-  border-top:2px solid var(--bdr);cursor:pointer;
-  font-family:var(--mono);font-size:10px;color:var(--ink3);
-  text-align:left;letter-spacing:.06em;transition:all .12s;
-  flex-shrink:0;
+  width:100%;
+  padding:10px var(--pad);
+  background:none;
+  border:none;
+  border-top:1px solid var(--blight);
+  cursor:pointer;
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  color:var(--ink3);
+  text-align:center;
+  letter-spacing:.06em;
+  transition:all .1s;
+  min-height:36px;
+  -webkit-tap-highlight-color:transparent;
 }
 .clear-btn:hover{background:var(--bg);color:var(--ink);}
+.clear-btn:active{background:var(--blight);}
 
 /* ══ RIGHT PANEL ══ */
-.col-right{display:flex;flex-direction:column;min-width:0;}
+.col-right{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  overflow:hidden;
+}
 
 /* System status bar */
 .sys-bar{
-  padding:10px 16px;border-bottom:2px solid var(--bdr);
-  background:var(--bg);display:flex;gap:8px;flex-wrap:wrap;
-  align-items:center;flex-shrink:0;
+  padding:8px var(--pad);
+  border-bottom:2px solid var(--bdr);
+  background:var(--bg);
+  display:flex;
+  gap:7px;
+  align-items:center;
+  flex-shrink:0;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
 }
+.sys-bar::-webkit-scrollbar{display:none;}
 .sys-node{
-  padding:6px 10px;border:1.5px solid var(--blight);
-  font-family:var(--head);font-size:12px;font-weight:700;
-  transition:all .12s;
-  display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:6px 10px;
+  border:1.5px solid var(--blight);
+  font-family:var(--head);
+  font-size:var(--fs-sm);
+  font-weight:700;
+  transition:all .1s;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:2px;
+  white-space:nowrap;
+  flex-shrink:0;
 }
-.sys-node-sub{font-family:var(--mono);font-size:8px;color:var(--ink3);}
+.sys-node-sub{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  color:var(--ink3);
+}
 .sys-node.hl{border-color:var(--amber-mid);background:var(--amber-bg);color:var(--amber);}
 .sys-node.hl .sys-node-sub{color:var(--amber);}
 .sys-node.hl-red{border-color:var(--red-mid);background:var(--red-bg);color:var(--red);}
 .sys-node.hl-red .sys-node-sub{color:var(--red);}
-.sys-arrow{font-family:var(--mono);font-size:13px;color:var(--ink3);}
-.sys-pair{display:flex;gap:6px;}
-
-/* Diagnostic area */
-.diag-area{flex:1;overflow-y:auto;padding:16px 18px;}
-
-.diag-empty{padding:24px 8px;color:var(--ink3);}
-.de-title{font-size:20px;font-weight:800;letter-spacing:.04em;margin-bottom:10px;}
-.de-body{font-size:14px;line-height:1.8;}
-
-/* Banners */
-.multi-banner{
-  padding:10px 14px;background:var(--blue-bg);
-  border:1.5px solid var(--blue);margin-bottom:14px;
+.sys-arrow{
+  font-family:var(--mono);
+  font-size:var(--fs-sm);
+  color:var(--ink3);
+  flex-shrink:0;
 }
-.mb-title{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--blue);letter-spacing:.08em;margin-bottom:4px;text-transform:uppercase;}
-.mb-body{font-size:13px;color:var(--blue);line-height:1.6;}
+.sys-pair{display:flex;gap:5px;flex-shrink:0;}
+
+/* Diagnostic scroll area */
+.diag-area{
+  flex:1;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  padding:var(--pad) clamp(12px,3vw,20px);
+}
+
+/* Empty state */
+.diag-empty{padding:20px 4px;color:var(--ink3);}
+.de-title{
+  font-size:var(--fs-xl);
+  font-weight:800;
+  letter-spacing:.04em;
+  margin-bottom:10px;
+}
+.de-body{font-size:var(--fs-md);line-height:1.8;}
+
+/* ══ BANNERS ══ */
+.multi-banner{
+  padding:10px 14px;
+  background:var(--blue-bg);
+  border:1.5px solid var(--blue);
+  margin-bottom:14px;
+}
+.mb-title{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  font-weight:700;
+  color:var(--blue);
+  letter-spacing:.08em;
+  margin-bottom:4px;
+  text-transform:uppercase;
+}
+.mb-body{font-size:var(--fs-base);color:var(--blue);line-height:1.6;}
 
 .cascade-box{
-  padding:10px 14px;background:var(--amber-bg);
-  border:1.5px solid var(--amber-mid);margin-bottom:12px;
+  padding:10px 14px;
+  background:var(--amber-bg);
+  border:1.5px solid var(--amber-mid);
+  margin-bottom:12px;
 }
-.cb-title{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--amber);letter-spacing:.08em;margin-bottom:5px;text-transform:uppercase;}
-.cb-body{font-size:13px;color:var(--amber);line-height:1.6;}
+.cb-title{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  font-weight:700;
+  color:var(--amber);
+  letter-spacing:.08em;
+  margin-bottom:5px;
+  text-transform:uppercase;
+}
+.cb-body{font-size:var(--fs-base);color:var(--amber);line-height:1.6;}
 
 .recovery-box{
-  padding:12px 14px;background:#EBF5DC;
-  border:2px solid var(--green-mid);margin-bottom:14px;
+  padding:12px 14px;
+  background:#EBF5DC;
+  border:2px solid var(--green-mid);
+  margin-bottom:14px;
 }
-.rb-title{font-family:var(--mono);font-size:10px;font-weight:700;color:#2E5A0E;letter-spacing:.08em;margin-bottom:8px;text-transform:uppercase;}
-.rb-step{font-size:13px;color:#2E5A0E;padding:4px 0 4px 12px;border-left:3px solid var(--green-mid);margin-bottom:5px;line-height:1.5;}
+.rb-title{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  font-weight:700;
+  color:#2E5A0E;
+  letter-spacing:.08em;
+  margin-bottom:8px;
+  text-transform:uppercase;
+}
+.rb-step{
+  font-size:var(--fs-base);
+  color:#2E5A0E;
+  padding:5px 0 5px 12px;
+  border-left:3px solid var(--green-mid);
+  margin-bottom:5px;
+  line-height:1.5;
+}
 
 .section-title{
-  font-family:var(--mono);font-size:10px;font-weight:700;
-  color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;
-  margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--blight);
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  font-weight:700;
+  color:var(--ink3);
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  margin:0 0 10px;
+  padding-bottom:6px;
+  border-bottom:1px solid var(--blight);
 }
 .sym-divider{height:2px;background:var(--blight);margin:14px 0;}
 
-/* Fault cards */
-.fault-block{border:1.5px solid var(--bdr);margin-bottom:12px;}
+/* ══ FAULT CARDS ══ */
+.fault-block{
+  border:1.5px solid var(--bdr);
+  margin-bottom:12px;
+  transition:box-shadow .1s;
+}
 .fault-top{
-  padding:10px 14px;border-bottom:1px solid var(--blight);
-  display:flex;align-items:center;gap:8px;
+  padding:11px 14px;
+  border-bottom:1px solid var(--blight);
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
 }
 .f-rank{
-  font-family:var(--mono);font-size:11px;font-weight:700;
-  padding:3px 7px;background:var(--ink);color:#fff;flex-shrink:0;
+  font-family:var(--mono);
+  font-size:var(--fs-sm);
+  font-weight:700;
+  padding:3px 8px;
+  background:var(--ink);
+  color:#fff;
+  flex-shrink:0;
 }
-.f-name{font-size:15px;font-weight:700;flex:1;line-height:1.3;}
-.f-lk{font-family:var(--mono);font-size:10px;font-weight:700;padding:3px 8px;flex-shrink:0;}
+.f-name{
+  font-size:var(--fs-md);
+  font-weight:700;
+  flex:1;
+  line-height:1.3;
+  min-width:140px;
+}
+.f-lk{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  font-weight:700;
+  padding:3px 8px;
+  flex-shrink:0;
+}
 .lkH{background:var(--red-bg);color:var(--red);}
 .lkM{background:var(--amber-bg);color:var(--amber);}
 .lkL{background:var(--green-bg);color:var(--green);}
@@ -188,21 +432,46 @@ html,body{font-family:var(--head);color:var(--ink);background:var(--bg);min-heig
 .fault-body{padding:10px 14px;}
 
 .sec-lbl{
-  font-family:var(--mono);font-size:9px;font-weight:700;
-  letter-spacing:.1em;color:var(--ink3);text-transform:uppercase;
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  font-weight:700;
+  letter-spacing:.1em;
+  color:var(--ink3);
+  text-transform:uppercase;
   margin:6px 0 5px;
 }
 
+/* Measurement rows */
 .mrow{
-  display:flex;align-items:baseline;gap:8px;
-  padding:5px 0;border-bottom:1px solid var(--blight);
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+  padding:6px 0;
+  border-bottom:1px solid var(--blight);
+  flex-wrap:wrap;
 }
 .mrow:last-of-type{border-bottom:none;}
-.m-port{font-family:var(--mono);font-size:11px;color:var(--ink2);min-width:80px;flex-shrink:0;font-weight:700;}
-.m-desc{font-size:13px;flex:1;line-height:1.4;}
+.m-port{
+  font-family:var(--mono);
+  font-size:var(--fs-sm);
+  color:var(--ink2);
+  font-weight:700;
+  min-width:80px;
+  flex-shrink:0;
+}
+.m-desc{
+  font-size:var(--fs-base);
+  flex:1;
+  line-height:1.4;
+  min-width:120px;
+}
 .m-val{
-  font-family:var(--mono);font-size:10px;font-weight:700;
-  padding:3px 7px;flex-shrink:0;white-space:nowrap;
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  font-weight:700;
+  padding:3px 7px;
+  flex-shrink:0;
+  white-space:nowrap;
 }
 .mv-warn{background:var(--red-bg);color:var(--red);}
 .mv-caut{background:var(--amber-bg);color:var(--amber);}
@@ -210,115 +479,180 @@ html,body{font-family:var(--head);color:var(--ink);background:var(--bg);min-heig
 .mv-info{background:var(--blue-bg);color:var(--blue);}
 
 .step{
-  font-size:13px;padding:5px 0 5px 12px;
+  font-size:var(--fs-base);
+  padding:5px 0 5px 13px;
   border-left:3px solid var(--amber-mid);
-  margin-bottom:5px;line-height:1.5;color:var(--ink2);
+  margin-bottom:6px;
+  line-height:1.55;
+  color:var(--ink2);
 }
 
-/* ══ MOBILE STYLES ══ */
-@media(max-width:768px){
-  .titlebar{flex-direction:column;gap:6px;padding:10px 14px;}
-  .t-name{font-size:18px;}
-  .t-sub{font-size:8px;}
-  .title-meta{text-align:left;}
-  .t-units,.t-copy{font-size:8px;}
+/* ══ MOBILE DRAWER ══ */
+.mob-toggle{display:none;}
+.mob-fab{display:none;}
+.drawer-overlay{display:none;}
 
-  .layout{
+@media(max-width:700px){
+  .app-shell{
     grid-template-columns:1fr;
-    grid-template-rows:auto 1fr;
-    min-height:calc(100vh - 80px);
+    height:auto;
+    overflow:visible;
   }
-
-  /* On mobile, left panel becomes a horizontal chip bar */
   .col-left{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:200;
     border-right:none;
-    border-bottom:2px solid var(--bdr);
-    max-height:none;
+    border-bottom:3px solid var(--bdr);
+    transform:translateY(-110%);
+    transition:transform .25s cubic-bezier(.4,0,.2,1);
+    max-height:80vh;
+    max-height:80dvh;
+    box-shadow:0 8px 32px rgba(0,0,0,.35);
   }
-  .col-hdr{padding:8px 12px;}
-  .col-hdr-txt{font-size:11px;}
-  .multi-tip{font-size:8px;padding:5px 12px;}
-
-  .sym-scroll{
+  .col-left.open{transform:translateY(0);}
+  .drawer-overlay{
+    display:block;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    z-index:190;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s;
+  }
+  .drawer-overlay.show{opacity:1;pointer-events:auto;}
+  .mob-fab{
     display:flex;
-    flex-direction:column;
-    max-height:260px;
-    overflow-y:auto;
+    align-items:center;
+    gap:8px;
+    position:fixed;
+    bottom:calc(20px + env(safe-area-inset-bottom, 0px));
+    left:50%;
+    transform:translateX(-50%);
+    z-index:180;
+    background:var(--ink);
+    color:#fff;
+    border:none;
+    padding:13px 22px;
+    font-family:var(--head);
+    font-size:15px;
+    font-weight:800;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    cursor:pointer;
+    box-shadow:0 4px 18px rgba(0,0,0,.45);
+    border-radius:2px;
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;
+    min-height:var(--tap);
+    white-space:nowrap;
+    transition:background .1s;
   }
-
-  .sym-item{padding:9px 12px;}
-  .sym-label{font-size:13px;}
-
-  .col-right{min-height:0;}
-
-  .sys-bar{
-    padding:8px 12px;
-    gap:6px;
-    overflow-x:auto;
-    flex-wrap:nowrap;
+  .mob-fab:active{background:#3A3A36;}
+  .mob-fab .fab-badge{
+    background:var(--amber-mid);
+    color:var(--ink);
+    font-family:var(--mono);
+    font-size:11px;
+    font-weight:700;
+    padding:2px 7px;
+    border-radius:2px;
+    min-width:22px;
+    text-align:center;
   }
-  .sys-node{padding:5px 8px;font-size:11px;}
-  .sys-node-sub{font-size:7px;}
-  .sys-arrow{font-size:11px;}
-
-  .diag-area{padding:12px 14px;}
-
-  .de-title{font-size:17px;}
-  .de-body{font-size:13px;}
-
-  .mb-title{font-size:9px;}
-  .mb-body{font-size:13px;}
-  .cb-body{font-size:13px;}
-  .rb-step{font-size:13px;}
-
-  .f-name{font-size:14px;}
-  .f-lk{font-size:9px;padding:2px 6px;}
-  .m-port{font-size:10px;min-width:70px;}
-  .m-desc{font-size:12px;}
-  .m-val{font-size:9px;padding:2px 5px;}
-  .step{font-size:12px;}
-
-  .fault-top{padding:9px 12px;flex-wrap:wrap;gap:6px;}
-  .fault-body{padding:9px 12px;}
+  .mob-fab .fab-badge.empty{display:none;}
+  .col-right{
+    width:100%;
+    height:auto;
+    overflow:visible;
+    padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));
+  }
+  .sys-bar{gap:5px;padding:8px 12px;}
+  .diag-area{padding:12px 14px;overflow:visible;flex:none;height:auto;}
+  .titlebar{padding:10px 14px;padding-top:max(10px, env(safe-area-inset-top,10px));flex-direction:column;gap:4px;}
+  .t-name{font-size:clamp(16px,5vw,20px);}
+  .title-meta{text-align:left;}
+  .t-units{display:none;}
+  .mrow{flex-direction:column;gap:4px;align-items:flex-start;}
+  .m-val{align-self:flex-start;}
+  .fault-top{padding:10px 12px;}
+  .fault-body{padding:10px 12px;}
+  .f-name{font-size:clamp(14px,3.5vw,16px);}
 }
 
-@media(max-width:420px){
-  .t-name{font-size:16px;}
-  .sys-node{font-size:10px;padding:4px 7px;}
-  .f-name{font-size:13px;}
-  .m-desc{font-size:11px;}
-  .step{font-size:11px;}
-  .rb-step{font-size:12px;}
+@media(min-width:701px) and (max-width:1024px){
+  .app-shell{grid-template-columns:clamp(180px,30%,260px) 1fr;}
+  .sym-label{font-size:clamp(12px,2vw,14px);}
 }
+
+.sym-scroll::-webkit-scrollbar,
+.diag-area::-webkit-scrollbar{width:4px;}
+.sym-scroll::-webkit-scrollbar-thumb,
+.diag-area::-webkit-scrollbar-thumb{background:var(--blight);border-radius:2px;}
+
+.install-bar{
+  display:none;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:8px var(--pad);
+  background:#181816;
+  border-bottom:2px solid var(--amber-mid);
+}
+.install-bar.show{display:flex;}
+.install-bar-txt{font-family:var(--mono);font-size:var(--fs-xs);color:#ccc;}
+.install-bar button{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  font-weight:700;
+  padding:5px 12px;
+  background:var(--amber-mid);
+  color:var(--ink);
+  border:none;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.install-close{background:none!important;color:#777!important;font-size:14px!important;padding:5px 8px!important;}
 </style>
 </head>
 <body>
 
-<div class="titlebar">
+<div class="install-bar" id="installBar">
+  <span class="install-bar-txt">📲 Install ScrubberDx for offline use</span>
+  <button onclick="doInstall()" id="installBtn">INSTALL</button>
+  <button class="install-close" onclick="dismissInstall()">✕</button>
+</div>
+
+<div class="titlebar" id="titlebar">
   <div>
     <div class="t-name">ScrubberDiagnostix</div>
-    <div class="t-sub">SP 750 Pump · CA 100-100 ×4 · Debswana Jwaneng Mine · Hydrostatic Drive Reference</div>
+    <div class="t-sub">SP 750 Pump · CA 100-100 ×4 · Debswana Jwaneng Mine</div>
   </div>
   <div class="title-meta">
     <div class="t-units">BOOST: kPa &nbsp;|&nbsp; MAIN: MPa &nbsp;|&nbsp; SWASHPLATE ≈10° OP.</div>
-    <div class="t-copy">© 2025 Anthony Masuga &nbsp;·&nbsp; v4.0</div>
+    <div class="t-copy">© 2025 Anthony Masuga &nbsp;·&nbsp; v6.0</div>
   </div>
 </div>
 
-<div class="layout">
+<div class="app-shell">
 
-  <!-- LEFT: Symptom selector -->
-  <div class="col-left">
+  <div class="drawer-overlay" id="overlay" onclick="closeDrawer()"></div>
+
+  <div class="col-left" id="colLeft">
     <div class="col-hdr">
       <span class="col-hdr-txt">Observed Symptoms</span>
       <span class="col-hdr-badge" id="selCount">0 selected</span>
     </div>
     <div class="multi-tip">✓ Select multiple to combine analysis</div>
     <div class="sym-scroll" id="symList"></div>
-    <button class="clear-btn" onclick="clearAll()">✕ &nbsp;CLEAR ALL</button>
+    
+    <div class="panel-actions">
+      <button class="calc-btn" id="calcBtn" onclick="evaluateDiagnostics()" disabled>RUN DIAGNOSTIX</button>
+      <button class="clear-btn" onclick="clearAll()">✕ &nbsp;CLEAR ALL SELECTIONS</button>
+    </div>
   </div>
 
-  <!-- RIGHT: Diagnostics -->
   <div class="col-right">
     <div class="sys-bar">
       <div class="sys-node" id="sn-pump">SP 750 PUMP<span class="sys-node-sub">~10° swashplate</span></div>
@@ -342,8 +676,8 @@ html,body{font-family:var(--head);color:var(--ink);background:var(--bg);min-heig
       <div class="diag-empty">
         <div class="de-title">SELECT ONE OR MORE SYMPTOMS</div>
         <div class="de-body">
-          Choose an observed symptom from the left panel. Select multiple symptoms together to generate a combined fault analysis.<br><br>
-          Fault candidates appear ranked by likelihood with exact measurement ports, datasheet threshold values, and step-by-step action guidance grounded in the SP750 and CA 100-100 datasheets.
+          Choose observed symptoms from the left panel — or tap the button below on mobile.<br><br>
+          Select multiple symptoms together, then click <b>"RUN DIAGNOSTIX"</b> to compile a coordinated fault profile complete with physical measure ports and operational action stages.
         </div>
       </div>
     </div>
@@ -351,9 +685,13 @@ html,body{font-family:var(--head);color:var(--ink);background:var(--bg);min-heig
 
 </div>
 
+<button class="mob-fab" id="mobFab" onclick="toggleDrawer()" aria-label="Select symptoms">
+  ☰ &nbsp;SYMPTOMS
+  <span class="fab-badge empty" id="fabBadge">0</span>
+</button>
+
 <script>
 const SYMS = [
-
   /* ══════════════════════════════════════════
      PRESSURE
   ══════════════════════════════════════════ */
@@ -403,7 +741,6 @@ const SYMS = [
               'A reversed check valve blocks the entire boost flow path, collapsing both boost and main pressure']}
     ]
   },
-
   {
     id:'p1', cat:'PRESSURE', label:'Boost OK — no main pressure', chip:'CTRL FAULT', col:'#B02E28',
     hl:{pump:'amber'},
@@ -440,7 +777,6 @@ const SYMS = [
               'Check isolation valves if fitted between pump and motors']}
     ]
   },
-
   {
     id:'p2', cat:'PRESSURE', label:'Low boost — low main pressure', chip:'CASCADE', col:'#8F5506',
     hl:{pump:'amber', m1:'amber', m2:'amber', m3:'amber', m4:'amber'},
@@ -476,7 +812,6 @@ const SYMS = [
               'If yes — relief valve setpoint has drifted and requires adjustment or replacement']}
     ]
   },
-
   {
     id:'p3', cat:'PRESSURE', label:'Fluctuating boost pressure', chip:'BOOST HUNT', col:'#8F5506',
     hl:{pump:'amber'},
@@ -511,7 +846,6 @@ const SYMS = [
               'Document frequency and amplitude of boost fluctuation to track degradation rate']}
     ]
   },
-
   {
     id:'p4', cat:'PRESSURE', label:'Fluctuating main pressure', chip:'MAIN HUNT', col:'#8F5506',
     hl:{pump:'amber', m1:'amber', m2:'amber', m3:'amber', m4:'amber'},
@@ -547,7 +881,6 @@ const SYMS = [
               'CA 100-100 specific torque: 100 Nm/bar — monitor if torque is lower than expected for given pressure']}
     ]
   },
-
   /* ══════════════════════════════════════════
      DRIVE
   ══════════════════════════════════════════ */
@@ -612,10 +945,25 @@ const SYMS = [
               'A sheared coupling typically produces a sharp impact sound at failure — check maintenance log']}
     ]
   },
-
   {
     id:'d2', cat:'DRIVE', label:'Drum sluggish / low speed', chip:'SPEED LOSS', col:'#8F5506',
     hl:{pump:'amber', m1:'amber', m2:'amber', m3:'amber', m4:'amber'},
+    recovery:{
+      title:'MANUAL DRUM JOG PROCEDURE — SLUGGISH / OVERLOADED DRUM',
+      steps:[
+        'Confirm pressure IS present at MA/MB before attempting manual control',
+        'If drum is moving but very slowly, assess whether overloaded feed is the cause before jogging',
+        'Remove solenoid power from EP control — disconnect XA and XB connectors',
+        'Switch pump to manual hydraulic control mode (direct manual actuation)',
+        'Actuate pump FORWARD (A-port to motors) — apply a brief controlled displacement stroke',
+        'Actuate pump REVERSE (B-port to motors) — apply a brief reverse stroke immediately after',
+        'Repeat forward/reverse cycling continuously — each cycle loosens and redistributes the feed charge',
+        'As drum picks up speed, gradually increase stroke duration and reduce reversal frequency',
+        'Once drum is rotating freely at consistent speed, hold the forward stroke steady',
+        'Reconnect solenoid connectors (XA and XB) with drum already in motion',
+        'Restore EP auto control — monitor drum speed for stability before returning to full production feed rate'
+      ]
+    },
     faults:[
       {rank:1, name:'Drum overloaded — feed too heavy to accelerate', lk:'H',
        measures:[
@@ -648,7 +996,6 @@ const SYMS = [
               'Compare current speed to the established normal baseline for this application']}
     ]
   },
-
   /* ══════════════════════════════════════════
      THERMAL
   ══════════════════════════════════════════ */
@@ -688,7 +1035,6 @@ const SYMS = [
               'ISO VG 68 at 50°C gives approximately 40 cSt — this is the recommended operating point']}
     ]
   },
-
   {
     id:'th2', cat:'THERMAL', label:'System oil temperature high', chip:'SYSTEM HEAT', col:'#B02E28',
     hl:{pump:'red', cooler:'red', m1:'red', m2:'red', m3:'red', m4:'red'},
@@ -714,7 +1060,6 @@ const SYMS = [
               'Contaminated fluid accelerates wear of pistons, cam rollers, distributor and EP spool valves']}
     ]
   },
-
   {
     id:'th3', cat:'THERMAL', label:'Motor case drain hot', chip:'MOTOR HEAT', col:'#B02E28',
     hl:{m1:'red', m2:'red', m3:'red', m4:'red'},
@@ -729,7 +1074,19 @@ const SYMS = [
               'Shared drain lines must be sized so ALL motors stay within case pressure limits simultaneously',
               'Viton (FPM) seals rated to +100°C; Nitrile (NBR) rated to only +70°C — know your seal type',
               'Bearing flushing via F3/F4 ports recommended for sustained operation above 280 rpm']},
-      {rank:2, name:'Internal wear — cam roller or distributor', lk:'M',
+      {rank:2, name:'Flushing line filter blocked — motor housing', lk:'H',
+       measures:[
+         {port:'F3 / F4', desc:'Motor housing flushing port flow', val:'Blocked = reduced flow', type:'warn'},
+         {port:'F1', desc:'Radial lip seal flushing port', val:'Check flow if seal leaking', type:'warn'},
+         {port:'T2 (motor)', desc:'Case temp rises despite low load', val:'Flushing fault signature', type:'caut'}
+       ],
+       steps:['CA 100-100 flushing ports: F1 flushes the radial lip seal; F3 and F4 flush the motor housing and radial lip seal',
+              'If the flushing line filter is blocked, motor housing temperature rises even at low drum speed',
+              'Blocked F3/F4 flushing causes the lip seal to run dry — seal failure and shaft leakage follows rapidly',
+              'Inspect and replace the flushing line filter element; verify flow is restored at F3/F4 after replacement',
+              'After a blocked flushing filter, inspect the radial lip seal for heat damage before returning to service',
+              'Flushing lines are separate from the main drain circuit — a blocked flushing filter does NOT show on D1 drain pressure readings']},
+      {rank:3, name:'Internal wear — cam roller or distributor', lk:'M',
        measures:[
          {port:'T2 (motor)', desc:'Drain temp comparison', val:'Outlier >10°C = fault', type:'warn'},
          {port:'T1 (motor)', desc:'Inlet port temperature', val:'Check for asymmetry', type:'info'}
@@ -740,7 +1097,6 @@ const SYMS = [
               'Motors run at sub-maximum speed in this application — drain temp elevation at low speed is highly significant']}
     ]
   },
-
   /* ══════════════════════════════════════════
      NOISE
   ══════════════════════════════════════════ */
@@ -792,7 +1148,6 @@ const SYMS = [
               'If shaft seal shows leakage, bearing wear has likely damaged the seal — replacement required']}
     ]
   },
-
   {
     id:'n2', cat:'NOISE', label:'Unusual noise from drive / motors', chip:'DRIVE NOISE', col:'#8F5506',
     hl:{m1:'amber', m2:'amber', m3:'amber', m4:'amber', drum:'amber'},
@@ -841,7 +1196,6 @@ const SYMS = [
               'Any metal-to-metal impact sound at startup is a serious warning sign — investigate before next start']}
     ]
   },
-
   /* ══════════════════════════════════════════
      MECHANICAL
   ══════════════════════════════════════════ */
@@ -869,7 +1223,6 @@ const SYMS = [
               'Verify all 4 motors have identical port connections consistent with commissioning drawing']}
     ]
   },
-
   {
     id:'m2', cat:'MECHANICAL', label:'Pump hunting / instability', chip:'CTRL HUNT', col:'#8F5506',
     hl:{pump:'amber'},
@@ -918,7 +1271,18 @@ function buildSymList(){
       </div>`;
     }).join('')}`
   ).join('');
-  document.getElementById('selCount').textContent=selected.size+' selected';
+  
+  document.getElementById('selCount').textContent = selected.size + ' selected';
+  
+  // Enable or disable calculations button depending on options checked
+  const calcBtn = document.getElementById('calcBtn');
+  if(calcBtn) calcBtn.disabled = (selected.size === 0);
+}
+
+function toggleSym(id){
+  selected.has(id) ? selected.delete(id) : selected.add(id);
+  buildSymList();
+  updateFab();
 }
 
 function updateNodes(){
@@ -938,26 +1302,44 @@ function updateNodes(){
   red.forEach(k=>{const el=document.getElementById(NODE_MAP[k]);if(el)el.className='sys-node hl-red';});
 }
 
-function toggleSym(id){
-  selected.has(id)?selected.delete(id):selected.add(id);
-  buildSymList();
-  updateNodes();
-  renderDiag();
+function isMobileView(){
+  return window.innerWidth <= 700;
+}
+
+function getEmptyMessage(){
+  if(isMobileView()){
+    return {
+      title:'SELECT ONE OR MORE SYMPTOMS',
+      body:'Tap the <b>"SYMPTOM"</b> button at the bottom to open the symptom drawer. Choose observed symptoms, then tap <b>"RUN DIAGNOSTIX"</b> to compile a coordinated fault profile complete with physical measure ports and operational action stages.'
+    };
+  }
+  return {
+    title:'SELECT ONE OR MORE SYMPTOMS',
+    body:'Choose observed symptoms from the left panel. Select multiple symptoms together, then click <b>"RUN DIAGNOSTIX"</b> to compile a coordinated fault profile complete with physical measure ports and operational action stages.'
+  };
 }
 
 function clearAll(){
   selected.clear();
   buildSymList();
   updateNodes();
+  updateFab();
+  const msg=getEmptyMessage();
   document.getElementById('diagArea').innerHTML=`
     <div class="diag-empty">
-      <div class="de-title">SELECT ONE OR MORE SYMPTOMS</div>
-      <div class="de-body">Choose an observed symptom from the left panel. Select multiple symptoms together to generate a combined fault analysis.<br><br>Fault candidates appear ranked by likelihood with exact measurement ports, datasheet threshold values, and step-by-step action guidance.</div>
+      <div class="de-title">${msg.title}</div>
+      <div class="de-body">${msg.body}</div>
     </div>`;
 }
 
-function renderDiag(){
-  if(selected.size===0){clearAll();return;}
+/* Activated via explicit action click */
+function evaluateDiagnostics() {
+  if(selected.size === 0) return;
+  
+  // 1. Process block highlight changes on top layout strip
+  updateNodes();
+  
+  // 2. Compute markup transformations for layout panel
   const selSyms=SYMS.filter(s=>selected.has(s.id));
   let html='';
 
@@ -1014,9 +1396,91 @@ function renderDiag(){
   });
 
   document.getElementById('diagArea').innerHTML=html;
+
+  // If on mobile view layout, collapse viewport drawer interface
+  if(window.innerWidth<=700){
+    closeDrawer();
+  }
+  
+  // Reset viewing location position index context 
+  const da=document.getElementById('diagArea');
+  if(da) da.scrollTop=0;
+}
+</script>
+
+<script>
+/* ══ MOBILE DRAWER ══ */
+function openDrawer(){
+  document.getElementById('colLeft').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+  document.body.style.overflow='hidden';
+}
+function closeDrawer(){
+  document.getElementById('colLeft').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+  document.body.style.overflow='';
+}
+function toggleDrawer(){
+  const d=document.getElementById('colLeft');
+  d.classList.contains('open')?closeDrawer():openDrawer();
 }
 
+function updateFab(){
+  const n=selected.size;
+  const badge=document.getElementById('fabBadge');
+  const fab=document.getElementById('mobFab');
+  if(badge){
+    badge.textContent=n;
+    badge.classList.toggle('empty',n===0);
+  }
+  if(fab){
+    fab.style.background=n>0?'var(--red)':'var(--ink)';
+  }
+}
+
+function setTitlebarH(){
+  const tb=document.getElementById('titlebar');
+  if(tb) document.documentElement.style.setProperty('--titlebar-h', tb.offsetHeight+'px');
+}
+setTitlebarH();
+window.addEventListener('resize',()=>{
+  setTitlebarH();
+  // Refresh empty message if orientation changes from mobile to desktop or vice versa
+  if(selected.size===0){
+    clearAll();
+  }
+});
+
+/* ══ PWA SERVICE WORKER ══ */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
+
+/* ══ PWA INSTALL PROMPT ══ */
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  document.getElementById('installBar').classList.add('show');
+});
+function doInstall(){
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(()=>{
+    deferredPrompt=null;
+    dismissInstall();
+  });
+}
+function dismissInstall(){
+  document.getElementById('installBar').classList.remove('show');
+}
+window.addEventListener('appinstalled',()=>dismissInstall());
+
+/* ══ INITIAL RENDER FIX ══ */
 buildSymList();
+updateFab();
 </script>
 </body>
 </html>
