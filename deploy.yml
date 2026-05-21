@@ -1,0 +1,40 @@
+name: Deploy v7 with Commit Hash
+
+on:
+  push:
+    branches:
+      - v7
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: v7
+      
+      - name: Get commit hash
+        id: commit
+        run: |
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          echo "hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
+          echo "Commit hash: $COMMIT_HASH"
+      
+      - name: Inject commit hash into index.html
+        run: |
+          sed -i 's/<!-- COMMIT_HASH: development -->/<!-- COMMIT_HASH: ${{ steps.commit.outputs.hash }} -->/g' index.html
+          echo "Injected commit hash: ${{ steps.commit.outputs.hash }}"
+      
+      - name: Verify injection
+        run: |
+          grep "COMMIT_HASH:" index.html
+      
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          publish_branch: gh-pages
+          force_orphan: false
