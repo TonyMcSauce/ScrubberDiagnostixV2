@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ScrubberDiagnostix v6.5</title>
+<link rel="manifest" href="./manifest.json"/>
+<link rel="stylesheet" href="./css/styles.css"/>
+</head>
+<body>
+
+<header class="titlebar">
+<div>
+<h1>ScrubberDiagnostix</h1>
+<p>v6.5 Infrastructure Release</p>
+</div>
+<div id="buildStamp"></div>
+</header>
+
+<main class="app-shell">
+
+<aside class="sidebar" id="sidebar">
+<div class="sidebar-header">
+<h2>Symptoms</h2>
+<span id="selectedCount">0 Selected</span>
+</div>
+
+<div class="symptom-list" id="symptomList"></div>
+
+<div class="sidebar-actions">
+<button id="runBtn">RUN DIAGNOSTIX</button>
+<button id="clearBtn">CLEAR</button>
+</div>
+</aside>
+
+<section class="content">
+<div class="system-bar">
+<div class="node">PUMP</div>
+<div class="node">COOLER</div>
+<div class="node">MOTORS</div>
+<div class="node">DRUM</div>
+</div>
+
+<div class="results" id="results">
+<h2>Select symptoms and run diagnostics</h2>
+</div>
+</section>
+
+</main>
+
+<button class="mobile-fab" id="mobileFab">SYMPTOMS</button>
+
+<script type="module" src="./js/app.js"></script>
+</body>
+</html>
