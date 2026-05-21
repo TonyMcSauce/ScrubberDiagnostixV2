@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<meta name="theme-color" content="#181816"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="ScrubberDx"/>
+<meta name="description" content="Hydrostatic drive fault reference — SP750 pump and CA 100-100 motors"/>
+<title>ScrubberDiagnostix v6 — Jwaneng Mine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+/* ══════════════════════════════════════════════════════
+   TOKENS & THEME VARIABLES
+══════════════════════════════════════════════════════ */
+:root{
+  --bg:#EDEAE2;
+  --surface:#F6F3EE;
+  --ink:#181816;
+  --ink2:#46453F;
+  --ink3:#86847C;
+  --bdr:#24241F;
+  --blight:#C4C2B8;
+  --red:#B02E28;--red-bg:#FCECEA;--red-mid:#D94540;
+  --amber:#8F5506;--amber-bg:#FDF2E0;--amber-mid:#EF9F27;
+  --green:#346010;--green-bg:#EDF5E0;--green-mid:#4E8E1C;
+  --blue:#0D4B96;--blue-bg:#E5EEFB;
+  --mono:'Space Mono',monospace;
+  --head:'Barlow Condensed',sans-serif;
+  /* fluid type scale */
+  --fs-xs: clamp(8px, 1.8vw, 10px);
+  --fs-sm: clamp(10px, 2.2vw, 12px);
+  --fs-base: clamp(13px, 2.8vw, 15px);
+  --fs-md: clamp(14px, 3vw, 16px);
+  --fs-lg: clamp(16px, 3.5vw, 20px);
+  --fs-xl: clamp(18px, 4vw, 24px);
+  /* touch targets */
+  --tap: 48px;
+  --gap: clamp(8px, 2vw, 14px);
+  --pad: clamp(10px, 2.5vw, 16px);
+}
+
+/* Dark mode theme */
+html[data-theme="dark"] {
+  --bg: #0f0f0d;
+  --surface: #1a1a17;
+  --ink: #f0f0ed;
+  --ink2: #d0cec6;
+  --ink3: #9d9c94;
+  --bdr: #2d2d29;
+  --blight: #3a3a35;
+  --red: #ff6b66;
+  --red-bg: #3d2420;
+  --red-mid: #ff8a84;
+  --amber: #ffa500;
+  --amber-bg: #3d2d1a;
+  --amber-mid: #ffb833;
+  --green: #6ec94f;
+  --green-bg: #2d3a1f;
+  --green-mid: #7fd75c;
+  --blue: #5a9fff;
+  --blue-bg: #1f2a3d;
+}
+
+/* ══ RESET ══ */
+*{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+body{
+  font-family:var(--head);
+  color:var(--ink);
+  background:var(--bg);
+  min-height:100vh;
+  min-height:100dvh;
+  overscroll-behavior:none;
+  transition: background-color 0.4s cubic-bezier(0.23, 1, 0.320, 1), 
+              color 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+}
+
+/* ══ TITLE BAR ══ */
+.titlebar{
+  background:var(--ink);
+  padding:10px var(--pad);
+  padding-top:max(10px, env(safe-area-inset-top, 10px));
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  border-bottom:3px solid var(--bdr);
+  position:sticky;
+  top:0;
+  z-index:100;
+  transition: background-color 0.4s cubic-bezier(0.23, 1, 0.320, 1),
+              border-color 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+}
+.t-name{
+  font-weight:800;
+  font-size:var(--fs-xl);
+  color:#fff;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+  line-height:1;
+}
+.t-sub{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  color:#666;
+  letter-spacing:.08em;
+  margin-top:4px;
+  text-transform:uppercase;
+  line-height:1.5;
+  transition: color 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+}
+html[data-theme="dark"] .t-sub {
+  color: #999;
+}
+.title-meta{text-align:right;flex-shrink:0;display:flex;gap:8px;align-items:flex-start;}
+.t-units{font-family:var(--mono);font-size:var(--fs-xs);color:#777;line-height:1.7;transition:color 0.4s cubic-bezier(0.23, 1, 0.320, 1);}
+html[data-theme="dark"] .t-units { color: #aaa; }
+.t-copy{font-family:var(--mono);font-size:var(--fs-xs);color:#555;margin-top:3px;transition:color 0.4s cubic-bezier(0.23, 1, 0.320, 1);}
+html[data-theme="dark"] .t-copy { color: #aaa; }
+
+/* Theme Toggle Button */
+.theme-toggle {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 3px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 36px;
+  transition: all 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.theme-toggle:hover {
+  background: rgba(255,255,255,0.15);
+  border-color: rgba(255,255,255,0.3);
+}
+.theme-toggle:active {
+  opacity: 0.85;
+}
+.theme-icon {
+  display: inline-block;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.theme-toggle:hover .theme-icon {
+  transform: rotate(20deg);
+}
+.theme-toggle:active .theme-icon {
+  transform: rotate(40deg) scale(0.95);
+}
+
+/* ══ APP SHELL ══ */
+.app-shell{
+  display:grid;
+  grid-template-columns:clamp(200px,24%,300px) 1fr;
+  height:calc(100vh - var(--titlebar-h,58px));
+  height:calc(100dvh - var(--titlebar-h,58px));
+  overflow:hidden;
+}
+
+/* ══ LEFT PANEL — SYMPTOM SELECTOR ══ */
+.col-left{
+  border-right:2px solid var(--bdr);
+  display:flex;
+  flex-direction:column;
+  background:var(--surface);
+  overflow:hidden;
+  transition: background-color 0.4s cubic-bezier(0.23, 1, 0.320, 1),
+              border-color 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+}
+.col-hdr{
+  padding:10px var(--pad);
+  background:var(--ink);
+  border-bottom:2px solid var(--bdr);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-direction:column;
+  gap:8px;
+  flex-shrink:0;
+  transition: background-color 0.4s cubic-bezier(0.23, 1, 0.320, 1),
+              border-color 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+}
+.col-hdr-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+.col-hdr-txt{
+  font-weight:700;
+  font-size:var(--fs-sm);
+  color:#fff;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.col-hdr-badge{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  color:#EF9F27;
+  padding:3px 8px;
+  border:1px solid #EF9F27;
+  white-space:nowrap;
+  transition: all 0.3s ease;
+}
+html[data-theme="dark"] .col-hdr-badge {
+  color: #ffb833;
+  border-color: #ffb833;
+}
+
+/* Search Input */
+.search-container {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.search-input {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  color: #fff;
+  transition: all 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.search-input::placeholder {
+  color: rgba(255,255,255,0.5);
+}
+.search-input:focus {
+  outline: none;
+  background: rgba(255,255,255,0.15);
+  border-color: rgba(255,255,255,0.4);
+  box-shadow: 0 0 0 2px rgba(239, 159, 39, 0.3);
+}
+html[data-theme="dark"] .search-input:focus {
+  box-shadow: 0 0 0 2px rgba(255, 184, 51, 0.3);
+}
+
+.search-clear {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 6px;
+  min-height: auto;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.search-clear:hover {
+  color: #fff;
+}
+.search-clear:active {
+  opacity: 0.7;
+}
+
+.multi-tip{
+  padding:6px var(--pad);
+  background:var(--amber-bg);
+  border-bottom:1px solid var(--amber-mid);
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  color:var(--amber);
+  line-height:1.5;
+  flex-shrink:0;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+}
+
+.sym-scroll{
+  flex:1;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+}
+
+.cat-strip{
+  padding:6px var(--pad) 4px;
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  letter-spacing:.12em;
+  color:var(--ink3);
+  text-transform:uppercase;
+  background:var(--bg);
+  border-bottom:1px solid var(--blight);
+  border-top:1px solid var(--blight);
+  font-weight:700;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+}
+
+.sym-item{
+  padding:11px var(--pad);
+  border-bottom:1px solid var(--blight);
+  cursor:pointer;
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  min-height:var(--tap);
+  transition:background .15s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+  opacity: 1;
+}
+.sym-item.hidden {
+  display: none;
+}
+.sym-item:hover{background:var(--amber-bg);}
+.sym-item.sel{background:var(--ink);}
+.sym-item:active{opacity:.85;}
+.sym-dot{
+  width:9px;height:9px;border-radius:50%;
+  margin-top:4px;flex-shrink:0;
+  transition: all 0.2s ease;
+}
+.sym-label{
+  font-size:var(--fs-base);
+  font-weight:700;
+  line-height:1.35;
+}
+.sym-item.sel .sym-label{color:#fff;}
+.sym-chip{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  padding:2px 7px;
+  margin-top:4px;
+  display:inline-block;
+  border-radius:2px;
+  transition: all 0.2s ease;
+}
+
+/* Action Control Area at bottom of left column */
+.panel-actions {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-top: 2px solid var(--bdr);
+  flex-shrink: 0;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+}
+.calc-btn {
+  width: 100%;
+  padding: 14px var(--pad);
+  background: var(--red);
+  color: #fff;
+  border: none;
+  font-family: var(--head);
+  font-size: var(--fs-md);
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .15s cubic-bezier(0.34, 1.56, 0.64, 1), 
+              transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+  min-height: var(--tap);
+}
+.calc-btn:hover { 
+  background: var(--red-mid);
+  transform: translateY(-2px);
+}
+.calc-btn:active { 
+  opacity: 0.9;
+  transform: translateY(0);
+}
+.calc-btn:disabled {
+  background: var(--blight);
+  color: var(--ink3);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.clear-btn{
+  width:100%;
+  padding:10px var(--pad);
+  background:none;
+  border:none;
+  border-top:1px solid var(--blight);
+  cursor:pointer;
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  color:var(--ink3);
+  text-align:center;
+  letter-spacing:.06em;
+  transition:all .15s cubic-bezier(0.34, 1.56, 0.64, 1);
+  min-height:36px;
+  -webkit-tap-highlight-color:transparent;
+}
+.clear-btn:hover{background:var(--bg);color:var(--ink);}
+.clear-btn:active{background:var(--blight);}
+
+/* ══ RIGHT PANEL ══ */
+.col-right{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  overflow:hidden;
+}
+
+/* System status bar */
+.sys-bar{
+  padding:8px var(--pad);
+  background:var(--ink);
+  border-bottom:2px solid var(--bdr);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  min-height:var(--tap);
+  flex-shrink:0;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+}
+.sys-badge{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  letter-spacing:.08em;
+  color:#fff;
+  text-transform:uppercase;
+}
+.sys-node-strip{
+  display:flex;
+  justify-content:space-around;
+  gap:4px;
+  min-width:0;
+  flex:1;
+}
+.sys-node{
+  flex:1;
+  height:16px;
+  border-radius:2px;
+  background:var(--blight);
+  transition:all .2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border:1px solid var(--bdr);
+}
+.sys-node.hl{
+  background:var(--amber-mid);
+  box-shadow:0 0 8px rgba(239,159,39,0.4);
+}
+.sys-node.hl-red{
+  background:var(--red-mid);
+  box-shadow:0 0 8px rgba(208,46,40,0.4);
+}
+
+/* Diag Area */
+.diag-area{
+  flex:1;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  background:var(--bg);
+  padding:var(--pad);
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+}
+
+.diag-empty{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  height:100%;
+  padding:var(--pad);
+  gap:var(--gap);
+  animation: fadeInUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.de-title{
+  font-weight:700;
+  font-size:var(--fs-md);
+  letter-spacing:.06em;
+  color:var(--ink);
+  text-transform:uppercase;
+}
+.de-body{
+  font-family:var(--mono);
+  font-size:var(--fs-sm);
+  color:var(--ink3);
+  line-height:1.6;
+  max-width:280px;
+}
+
+/* Multi-banner */
+.multi-banner{
+  padding:12px var(--pad);
+  background:var(--amber-bg);
+  border:2px solid var(--amber-mid);
+  border-radius:4px;
+  margin-bottom:12px;
+  animation:slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.mb-title{
+  font-weight:800;
+  font-size:var(--fs-base);
+  color:var(--amber);
+  letter-spacing:.05em;
+  margin-bottom:6px;
+}
+.mb-body{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  color:var(--amber);
+  line-height:1.5;
+}
+
+/* Cascade Box */
+.cascade-box{
+  padding:12px var(--pad);
+  background:var(--blue-bg);
+  border-left:3px solid var(--blue);
+  margin-bottom:12px;
+  border-radius:3px;
+  animation:slideDown 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.cb-title{
+  font-weight:700;
+  font-size:var(--fs-base);
+  color:var(--blue);
+  letter-spacing:.05em;
+  margin-bottom:8px;
+}
+.cb-body{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  color:var(--ink2);
+  line-height:1.6;
+}
+html[data-theme="dark"] .cb-body {
+  color: var(--ink2);
+}
+
+/* Recovery Box */
+.recovery-box{
+  padding:12px var(--pad);
+  background:var(--green-bg);
+  border-left:3px solid var(--green);
+  margin-bottom:12px;
+  border-radius:3px;
+  animation:slideDown 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.rb-title{
+  font-weight:700;
+  font-size:var(--fs-base);
+  color:var(--green);
+  letter-spacing:.05em;
+  margin-bottom:8px;
+}
+.rb-step{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  color:var(--ink2);
+  line-height:1.6;
+  margin:6px 0;
+}
+html[data-theme="dark"] .rb-step {
+  color: var(--ink2);
+}
+
+/* Section Title */
+.section-title{
+  font-weight:700;
+  font-size:var(--fs-base);
+  color:var(--ink);
+  letter-spacing:.06em;
+  margin-top:18px;
+  margin-bottom:12px;
+  padding-top:12px;
+  border-top:1px solid var(--blight);
+  text-transform:uppercase;
+}
+
+/* Fault Block */
+.fault-block{
+  padding:12px var(--pad);
+  background:var(--surface);
+  border:1px solid var(--blight);
+  margin-bottom:12px;
+  border-radius:3px;
+  animation:slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.3s ease;
+}
+.fault-block:hover {
+  border-color: var(--amber-mid);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+html[data-theme="dark"] .fault-block:hover {
+  box-shadow: 0 2px 8px rgba(255,255,255,0.1);
+}
+
+.fault-top{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:10px;
+  flex-wrap:wrap;
+}
+.f-rank{
+  font-family:var(--mono);
+  font-weight:700;
+  font-size:var(--fs-xs);
+  color:var(--ink3);
+  letter-spacing:.08em;
+}
+.f-name{
+  font-weight:700;
+  font-size:var(--fs-base);
+  color:var(--ink);
+  flex:1;
+  min-width:200px;
+}
+.f-lk{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  font-weight:700;
+  padding:3px 6px;
+  border-radius:2px;
+  letter-spacing:.08em;
+}
+.lkH { color:#fff; background:var(--red); }
+.lkM { color:#fff; background:var(--amber); }
+.lkL { color:#fff; background:var(--green); }
+
+/* Measure Row */
+.fault-body{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.sec-lbl{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  color:var(--ink3);
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  font-weight:700;
+  margin-top:4px;
+}
+.mrow{
+  display:grid;
+  grid-template-columns:1fr 1.5fr 1fr;
+  gap:8px;
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  line-height:1.5;
+}
+.m-port{
+  color:var(--ink2);
+  font-weight:700;
+}
+.m-desc{
+  color:var(--ink3);
+}
+.m-val{
+  padding:2px 4px;
+  border-radius:2px;
+  font-weight:700;
+}
+.mv-warn { background:var(--red-bg); color:var(--red); }
+.mv-caut { background:var(--amber-bg); color:var(--amber); }
+.mv-ok { background:var(--green-bg); color:var(--green); }
+.mv-info { background:var(--blue-bg); color:var(--blue); }
+
+/* Step */
+.step{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  color:var(--ink2);
+  line-height:1.6;
+  margin:6px 0;
+}
+html[data-theme="dark"] .step {
+  color: var(--ink2);
+}
+
+/* Divider */
+.sym-divider{
+  height:2px;
+  background:linear-gradient(90deg, var(--blight) 0%, transparent 50%, var(--blight) 100%);
+  margin:18px 0;
+}
+
+/* MOBILE LAYOUT */
+@media(max-width:700px){
+  .app-shell{
+    grid-template-columns:1fr;
+  }
+  .col-left{
+    position:fixed;
+    inset:0;
+    z-index:1000;
+    transform:translateX(-100%);
+    transition:transform .3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border-right:none;
+    border:none;
+  }
+  .col-left.open{
+    transform:translateX(0);
+  }
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.3);
+    opacity:0;
+    pointer-events:none;
+    z-index:999;
+    transition:opacity .3s ease;
+  }
+  .overlay.show{
+    opacity:1;
+    pointer-events:auto;
+  }
+  .mob-fab{
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    width:56px;
+    height:56px;
+    border-radius:50%;
+    background:var(--ink);
+    color:#fff;
+    border:none;
+    font-size:20px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:500;
+    box-shadow:0 4px 12px rgba(0,0,0,0.3);
+    transition:all .2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .mob-fab:active{
+    transform:scale(0.95);
+  }
+  .mob-fab-badge{
+    position:absolute;
+    top:-8px;
+    right:-8px;
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    background:var(--red);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:var(--mono);
+    font-size:var(--fs-xs);
+    font-weight:700;
+    transition:all .2s ease;
+  }
+  .mob-fab-badge.empty{
+    opacity:0;
+    transform:scale(0);
+  }
+}
+
+/* ANIMATIONS */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* ── Update Toast ────────────────────────────────────────────────── */
+#updateToast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--ink);
+  border: 2px solid var(--amber-mid);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 4px;
+  z-index: 9000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease, transform .3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+#updateToast.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+.ut-label {
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  color: var(--amber-mid);
+  letter-spacing: .06em;
+}
+.ut-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--amber-mid);
+  animation: pulse-dot 1.4s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .4; transform: scale(.7); }
+}
+.ut-btn {
+  padding: 5px 10px;
+  background: var(--amber-mid);
+  color: var(--ink);
+  border: none;
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: .07em;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: opacity .15s;
+}
+.ut-btn:hover { opacity: .85; }
+.ut-close {
+  background: none;
+  border: none;
+  color: var(--ink3);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 4px;
+  transition: color .15s;
+}
+.ut-close:hover { color: #fff; }
+
+/* Install bar */
+#installBar{
+  background:var(--ink);
+  padding:var(--pad);
+  border-bottom:2px solid var(--bdr);
+  display:none;
+  align-items:center;
+  justify-content:space-between;
+  gap:var(--gap);
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  color:#fff;
+}
+#installBar.show{
+  display:flex;
+  animation:slideDown .3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.install-close{
+  background:none;
+  border:none;
+  color:#fff;
+  cursor:pointer;
+  font-size:18px;
+  padding:0;
+}
+.install-btn{
+  padding:6px 12px;
+  background:var(--red);
+  color:#fff;
+  border:none;
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  cursor:pointer;
+  border-radius:2px;
+  transition:background .1s;
+}
+.install-btn:hover{background:var(--red-mid);}
+</style>
+</head>
+<body id="app">
+
+<div id="installBar">
+  <span>💾 Install ScrubberDx for offline access</span>
+  <button class="install-btn" onclick="doInstall()">INSTALL</button>
+  <button class="install-close" onclick="dismissInstall()">✕</button>
+</div>
+
+<!-- Update available toast -->
+<div id="updateToast">
+  <div class="ut-dot"></div>
+  <span class="ut-label">NEW VERSION AVAILABLE</span>
+  <button class="ut-btn" onclick="applyUpdate()">UPDATE NOW</button>
+  <button class="ut-close" onclick="dismissUpdate()" title="Dismiss">✕</button>
+</div>
+
+<div class="titlebar" id="titlebar">
+  <div>
+    <div class="t-name">ScrubberDiagnostix</div>
+    <div class="t-sub">SP 750 Pump · CA 100-100 ×4 · Debswana Jwaneng Mine</div>
+  </div>
+  <div class="title-meta">
+    <div>
+      <div class="t-units">BOOST: kPa | MAIN: MPa | SWASHPLATE ≈10° OP.</div>
+      <div class="t-copy">© 2025 Anthony Masuga · v6.0</div>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">
+      <span class="theme-icon" id="themeIcon">🌙</span>
+    </button>
+  </div>
+</div>
+
+<div class="app-shell">
+  <div class="col-left" id="colLeft">
+    <div class="col-hdr">
+      <div class="col-hdr-top">
+        <div class="col-hdr-txt">Observed Symptoms</div>
+        <div class="col-hdr-badge" id="selCount">0 selected</div>
+      </div>
+      <div class="search-container">
+        <input 
+          type="text" 
+          class="search-input" 
+          id="searchInput"
+          placeholder="Search symptoms..."
+          onkeyup="filterSymptoms()"
+        />
+        <button 
+          class="search-clear" 
+          id="searchClear"
+          onclick="clearSearch()"
+          style="display:none;"
+          title="Clear search"
+        >✕</button>
+      </div>
+    </div>
+    <div class="multi-tip">✓ Select multiple to combine analysis</div>
+    <div class="sym-scroll">
+      <div id="symList"></div>
+    </div>
+    <div class="panel-actions">
+      <button class="calc-btn" id="calcBtn" onclick="evaluateDiagnostics()">RUN DIAGNOSTIX</button>
+      <button class="clear-btn" onclick="clearAll()">✕ CLEAR ALL SELECTIONS</button>
+    </div>
+  </div>
+
+  <div class="col-right">
+    <div class="sys-bar">
+      <span class="sys-badge">System Status</span>
+      <div class="sys-node-strip" id="sysStrip">
+        <div class="sys-node" id="sn-pump"></div>
+        <div class="sys-node" id="sn-cooler"></div>
+        <div class="sys-node" id="sn-m1"></div>
+        <div class="sys-node" id="sn-m2"></div>
+        <div class="sys-node" id="sn-m3"></div>
+        <div class="sys-node" id="sn-m4"></div>
+        <div class="sys-node" id="sn-drum"></div>
+      </div>
+    </div>
+    <div class="diag-area" id="diagArea">
+      <div class="diag-empty">
+        <div class="de-title">SELECT ONE OR MORE SYMPTOMS</div>
+        <div class="de-body">Choose observed symptoms from the left panel — or tap the button below on mobile. Select multiple symptoms together, then click <b>"RUN DIAGNOSTIX"</b> to compile a coordinated fault profile complete with physical measure ports and operational action stages.</div>
+      </div>
+    </div>
+    <button class="mob-fab" id="mobFab" onclick="toggleDrawer()" style="display:none;">
+      <span>☰</span>
+      <div class="mob-fab-badge empty" id="fabBadge">0</div>
+    </button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+
+<script>
+// Data structure - all symptoms with linked faults
+const SYMS=[
+  {id:'T1',cat:'Temperature',label:'Excessive Oil Temperature',col:'#B02E28',chip:'Oil Temp >60°C',
+   hl:{pump:'red',cooler:'red'},
+   cascade:'Elevated oil temperature accelerates viscosity loss and degradation of seal materials. If unchecked, slippage in swashplate motors increases exponentially as fluid viscosity drops.',
+   recovery:{title:'Oil Temperature Recovery Protocol',steps:['Check cooler fan operation and verify intake airflow is unrestricted','Inspect cooler core for blockage (contamination, debris, insect nests common in desert environment)','Confirm pump case drain line is patent — backpressure causes heat generation','Verify fan solenoid current draw during operation']},
+   faults:[
+     {rank:1, name:'Cooler fan is non-functional',lk:'H',
+      measures:[
+        {port:'Fan motor lead', desc:'12V command signal check', val:'Should see PWM pulse train', type:'warn'},
+        {port:'Cooler outlet', desc:'Temperature after fan off/on cycle', val:'Should drop 5-8°C in 3min', type:'warn'}
+      ],
+      steps:['Scope fan motor control leads for correct PWM frequency and duty cycle','Voltage test: 0V = solenoid circuit failure; partial voltage = relay issue','Manual fan override: apply 12V directly to motor — if it runs, wiring is intact','If motor is mute with direct 12V, cooler fan motor is mechanically seized or electrically open']}
+   ]
+  },
+  {id:'T2',cat:'Temperature',label:'Temperature Rising Under Load',col:'#B02E28',chip:'Temp ↑ Load',
+   hl:{pump:'amber',cooler:'amber'},
+   faults:[
+     {rank:1, name:'Inadequate cooler capacity for ambient + load',lk:'M',
+      measures:[
+        {port:'Cooler inlet/outlet', desc:'Differential temperature', val:'Should be >6°C @ full load', type:'warn'},
+        {port:'Ambient air', desc:'Inlet air temperature', val:'Log desert peak temps >45°C', type:'info'}
+      ],
+      steps:['Thermal load assessment: measure pump flow and pressure during typical dig cycle','Calculate heat rejection: Q = ΔT × flow × ρ × Cp','Compare to cooler nameplate capacity — may require auxiliary cooler if ambient >50°C','Consider thermostatic valve to bypass cooler in winter operation']}
+   ]
+  },
+  {id:'P1',cat:'Pressure',label:'Boost Pressure Fluctuation',col:'#EF9F27',chip:'Boost Unstable',
+   hl:{pump:'amber',m1:'amber',m2:'amber'},
+   cascade:'Unstable boost pressure means the EP controller receives erratic pilot pressure, causing swashplate to hunt. This oscillation reduces efficiency and generates hydraulic noise.',
+   faults:[
+     {rank:1, name:'Pressure relief valve in boost circuit oscillating',lk:'H',
+      measures:[
+        {port:'MK4 (boost line)', desc:'Pressure waveform', val:'Should be steady ±50 kPa', type:'warn'},
+        {port:'ME1 (boost return)', desc:'Return pressure stability', val:'Should be <500 kPa', type:'info'}
+      ],
+      steps:['Install pressure transducer on boost line and scope the waveform','If oscillation frequency matches valve spool natural frequency (~30 Hz), valve is unstable','Valve instability often caused by: (a) poppet seat erosion, (b) spring preload drift, (c) contamination in spool stack','Replace boost relief valve; verify ISO 4406 cleanliness 18/16/13']}
+   ]
+  },
+  {id:'P2',cat:'Pressure',label:'Low Main System Pressure',col:'#EF9F27',chip:'Main ↓',
+   hl:{pump:'red'},
+   recovery:{title:'Low Pressure Diagnosis',steps:['Verify pump case drain return temperature — high temp indicates internal leakage','Check motor case drain lines: blockage causes back-pressure, reducing pump outlet pressure','Internal leakage test: record main pressure + flow, calculate case drain flow via bucket/timer method','If case drain flow >15% of pump outlet, internal wear limits have been exceeded']},
+   faults:[
+     {rank:1, name:'Pump internal leakage due to wear or cavitation damage',lk:'H',
+      measures:[
+        {port:'Main discharge (ME2)', desc:'System pressure at standby', val:'Should be ≥2800 kPa', type:'warn'},
+        {port:'Pump case drain (MK1)', desc:'Case drain flow rate', val:'<2% of pump output nominal', type:'warn'}
+      ],
+      steps:['Standby pressure: if <2700 kPa with unloaded pump, internal leakage is probable','Measure pump input/output: flow drop >10% from baseline indicates swashplate stiction or spool wear','Cavitation signature: listen for grinding noise during pressure spike transients','SP750 wear limits: if pump has >3000 hrs, schedule overhaul']},
+     {rank:2, name:'Main relief valve stuck or set too low',lk:'H',
+      measures:[
+        {port:'ME2 (main discharge)', desc:'Cracking pressure measurement', val:'Should equal set point ±30 kPa', type:'warn'},
+        {port:'Valve body temperature', desc:'Relief valve heat signature', val:'Should be warm, not hot', type:'info'}
+      ],
+      steps:['Valve stuck open: pressure collapses immediately when pump strokes','Loosen relief adjustment and check if pressure recovers — if yes, adjust to ±2900 kPa','Stuck valve: cannot adjust upward. Requires flush and possible valve replacement','Post-repair: verify no metal particles in return filter']}
+   ]
+  },
+  {id:'P3',cat:'Pressure',label:'Loss of Motor Swashplate Angle',col:'#FF6B66',chip:'No Stroke',
+   hl:{m1:'red',m2:'red'},
+   cascade:'If swashplate is pinned at zero stroke (neutral), motor output is zero regardless of main pressure. This typically indicates a solenoid or pilot pressure failure.',
+   faults:[
+     {rank:1, name:'Pilot pressure (EP control) lost or too low',lk:'H',
+      measures:[
+        {port:'ME3 (pilot control)', desc:'Pilot supply pressure', val:'Min 2500 kPa required', type:'warn'},
+        {port:'Solenoid leads', desc:'12V command signal', val:'Should see clean PWM', type:'warn'}
+      ],
+      steps:['Scope the solenoid command input — if signal is absent, check PLC/controller output','Pilot pressure lost: inspect compensator valve in pump — may be stuck or leaking','Test pilot relief: crack pilot line and listen for pressure pop (should vent at ~3200 kPa)','If pilot supply is <2500 kPa cold start, compensator spring is weak or pilot line restricted']}
+   ]
+  },
+  {id:'N1',cat:'Noise',label:'Pump Cavitation Noise',col:'#346010',chip:'Cavitation',
+   hl:{pump:'red',cooler:'amber'},
+   cascade:'Cavitation (vapor bubbles collapsing) produces loud grinding and damages pump internals. Root causes: inlet filter blocked, inlet line kinked, or oil level low.',
+   recovery:{title:'Cavitation Emergency Response',steps:['STOP pump immediately — continuing operation causes irreversible damage','Check oil reservoir level — top up to max line','Inspect inlet filter element: replace if visibly saturated','Verify pump inlet line has no kinks or closed isolation valve','Loosen inlet manifold connection and listen for air ingestion']},
+   faults:[
+     {rank:1, name:'Inlet filter blocked or bypass stuck closed',lk:'H',
+      measures:[
+        {port:'Pump inlet (MK5)', desc:'Inlet pressure (vacuum)', val:'Should be 0 to -20 kPa', type:'warn'},
+        {port:'Filter visual', desc:'Element color and saturation', val:'Should be light tan, not black', type:'warn'}
+      ],
+      steps:['Cavitation signature: loud grinding + pulsing pressure ripple on main line','Inlet vacuum >-30 kPa indicates blockage — replace filter element immediately','Delta-P gauge on filter: if >3.5 bar, bypass spring may be stuck — replace filter housing','Post-cavitation inspection: pump may have internal damage — consult manufacturer']}
+   ]
+  },
+  {id:'N2',cat:'Noise',label:'Hydraulic System Whine',col:'#346010',chip:'Whine',
+   faults:[
+     {rank:1, name:'Pump displacement control (swashplate) hunting',lk:'M',
+      measures:[
+        {port:'MK4 (boost pressure)', desc:'Boost line ripple', val:'Should be <100 kPa peak-to-peak', type:'warn'},
+        {port:'ME2 (main discharge)', desc:'Main pressure oscillation', val:'Smooth, no ripple', type:'warn'}
+      ],
+      steps:['Whine frequency 40-80 Hz typically indicates swashplate oscillation','Cause: weak or misadjusted compensator spring, or unstable boost relief','Adjust pump compensator knob (gentle quarter-turn increments) to reduce ripple','If still present after adjustment, boost relief valve requires service']}
+   ]
+  },
+  {id:'N3',cat:'Noise',label:'Intermittent Spool Chatter',col:'#346010',chip:'Spool Chatter',
+   hl:{pump:'amber',m1:'amber',m2:'amber'},
+   cascade:'Spool chatter indicates control valve spools sticking then freeing rapidly — contaminated oil is the primary culprit.',
+   faults:[
+     {rank:1, name:'Control valve spools contaminated or partially stuck',lk:'M',
+      measures:[
+        {port:'ME3 / MK4', desc:'Boost pressure stability', val:'Should be steady', type:'info'},
+        {port:'M1 / M2', desc:'Stroking chamber oscillation', val:'Oscillates with pump hunt', type:'warn'}
+      ],
+      steps:['Contamination causes valve spool to stick then free intermittently — produces hunting','SP750 safety note: contaminated valve spools can permanently jam — act without delay','Flush hydraulic system; verify ISO 4406 cleanliness level is 18/16/13 or better','SP750 pos.10 control fluid filter (0.2 mm) — inspect and replace if blocked']},
+     {rank:2, name:'Boost pressure fluctuation driving swashplate hunt',lk:'M',
+      measures:[
+        {port:'MK4', desc:'Boost pressure waveform', val:'Unstable = root cause', type:'warn'},
+        {port:'ME3', desc:'Control pressure supply', val:'Min 3000 kPa required', type:'warn'}
+      ],
+      steps:['Unstable boost causes EP control to receive varying pilot pressure — swashplate follows fluctuation','Address boost root cause first (select Fluctuating boost pressure for full diagnosis)','If boost confirmed stable but hunting persists — PWM controller output is next suspect','Verify solenoid command current is clean DC with correct PWM carrier frequency']}
+    ]
+  }
+];
+
+const NODE_MAP = {pump:'sn-pump',cooler:'sn-cooler',m1:'sn-m1',m2:'sn-m2',m3:'sn-m3',m4:'sn-m4',drum:'sn-drum'};
+let selected = new Set();
+let allSymptoms = [...SYMS]; // Store original list for filtering
+
+const getLkClass = l => l==='H'?'lkH':l==='M'?'lkM':'lkL';
+const getLkLabel = l => l==='H'?'HIGH':l==='M'?'MED':'LOW';
+const getMv = t => t==='warn'?'mv-warn':t==='caut'?'mv-caut':t==='ok'?'mv-ok':'mv-info';
+
+function buildSymList(symptomsToShow = SYMS){
+  const cats=[...new Set(symptomsToShow.map(s=>s.cat))];
+  document.getElementById('symList').innerHTML=cats.map(cat=>`
+    <div class="cat-strip">${cat}</div>
+    ${symptomsToShow.filter(s=>s.cat===cat).map(s=>{
+      const isSel=selected.has(s.id);
+      return `<div class="sym-item${isSel?' sel':''}" data-id="${s.id}" onclick="toggleSym('${s.id}')">
+        <div class="sym-dot" style="background:${isSel?'#EF9F27':s.col}"></div>
+        <div>
+          <div class="sym-label">${s.label}</div>
+          <span class="sym-chip" style="${isSel?'background:#EF9F27;color:#181816':'background:'+s.col+'18;color:'+s.col}">${s.chip}</span>
+        </div>
+      </div>`;
+    }).join('')}`
+  ).join('');
+  
+  document.getElementById('selCount').textContent = selected.size + ' selected';
+  
+  const calcBtn = document.getElementById('calcBtn');
+  if(calcBtn) calcBtn.disabled = (selected.size === 0);
+}
+
+function filterSymptoms() {
+  const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+  const clearBtn = document.getElementById('searchClear');
+  
+  if (searchTerm === '') {
+    clearBtn.style.display = 'none';
+    buildSymList(SYMS);
+  } else {
+    clearBtn.style.display = 'block';
+    const filtered = SYMS.filter(sym => 
+      sym.label.toLowerCase().includes(searchTerm) || 
+      sym.chip.toLowerCase().includes(searchTerm) ||
+      sym.cat.toLowerCase().includes(searchTerm)
+    );
+    buildSymList(filtered);
+  }
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchClear').style.display = 'none';
+  buildSymList(SYMS);
+}
+
+function toggleSym(id){
+  selected.has(id) ? selected.delete(id) : selected.add(id);
+  buildSymList(SYMS);
+  updateFab();
+}
+
+function updateNodes(){
+  Object.values(NODE_MAP).forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.className='sys-node';
+  });
+  const red=new Set(), amber=new Set();
+  selected.forEach(sid=>{
+    const sym=SYMS.find(s=>s.id===sid);
+    if(!sym||!sym.hl)return;
+    Object.entries(sym.hl).forEach(([k,v])=>{
+      if(v==='red')red.add(k); else amber.add(k);
+    });
+  });
+  amber.forEach(k=>{const el=document.getElementById(NODE_MAP[k]);if(el)el.className='sys-node hl';});
+  red.forEach(k=>{const el=document.getElementById(NODE_MAP[k]);if(el)el.className='sys-node hl-red';});
+}
+
+function isMobileView(){
+  return window.innerWidth <= 700;
+}
+
+function getEmptyMessage(){
+  if(isMobileView()){
+    return {
+      title:'SELECT ONE OR MORE SYMPTOMS',
+      body:'Tap the <b>"☰"</b> button at the bottom to open the symptom drawer. Choose observed symptoms, then tap <b>"RUN DIAGNOSTIX"</b> to compile a coordinated fault profile complete with physical measure ports and operational action stages.'
+    };
+  }
+  return {
+    title:'SELECT ONE OR MORE SYMPTOMS',
+    body:'Choose observed symptoms from the left panel — or use the search to find them quickly. Select multiple symptoms together, then click <b>"RUN DIAGNOSTIX"</b> to compile a coordinated fault profile complete with physical measure ports and operational action stages.'
+  };
+}
+
+function clearAll(){
+  selected.clear();
+  buildSymList(SYMS);
+  updateNodes();
+  updateFab();
+  const msg=getEmptyMessage();
+  document.getElementById('diagArea').innerHTML=`
+    <div class="diag-empty">
+      <div class="de-title">${msg.title}</div>
+      <div class="de-body">${msg.body}</div>
+    </div>`;
+}
+
+function evaluateDiagnostics() {
+  if(selected.size === 0) return;
+  
+  updateNodes();
+  
+  const selSyms=SYMS.filter(s=>selected.has(s.id));
+  let html='';
+
+  if(selected.size>1){
+    const labels=selSyms.map(s=>`<b>${s.label}</b>`).join(' + ');
+    html+=`<div class="multi-banner">
+      <div class="mb-title">⊕ MULTI-SYMPTOM ANALYSIS — ${selected.size} symptoms selected</div>
+      <div class="mb-body">Analysing: ${labels}.<br>Components appearing across multiple fault sections below are the highest priority to investigate first.</div>
+    </div>`;
+  }
+
+  selSyms.forEach(sym=>{
+    if(sym.cascade){
+      html+=`<div class="cascade-box">
+        <div class="cb-title">⚡ ${sym.label} — cascade logic</div>
+        <div class="cb-body">${sym.cascade}</div>
+      </div>`;
+    }
+  });
+
+  selSyms.forEach(sym=>{
+    if(sym.recovery){
+      html+=`<div class="recovery-box">
+        <div class="rb-title">🔧 ${sym.recovery.title}</div>
+        ${sym.recovery.steps.map((s,i)=>`<div class="rb-step"><b>${i+1}.</b> ${s}</div>`).join('')}
+      </div>`;
+    }
+  });
+
+  selSyms.forEach((sym,idx)=>{
+    if(selected.size>1){
+      html+=`<div class="section-title">▸ FAULTS FOR: ${sym.label}</div>`;
+    }
+    html+=sym.faults.map(f=>`
+      <div class="fault-block">
+        <div class="fault-top">
+          <span class="f-rank">#${f.rank}</span>
+          <span class="f-name">${f.name}</span>
+          <span class="f-lk ${getLkClass(f.lk)}">${getLkLabel(f.lk)}</span>
+        </div>
+        <div class="fault-body">
+          <div class="sec-lbl">Measure at</div>
+          ${f.measures.map(m=>`
+            <div class="mrow">
+              <span class="m-port">${m.port}</span>
+              <span class="m-desc">${m.desc}</span>
+              <span class="m-val ${getMv(m.type)}">${m.val}</span>
+            </div>`).join('')}
+          <div class="sec-lbl" style="margin-top:8px;">Action steps</div>
+          ${f.steps.map(s=>`<div class="step">${s}</div>`).join('')}
+        </div>
+      </div>`).join('');
+    if(selected.size>1&&idx<selSyms.length-1) html+=`<div class="sym-divider"></div>`;
+  });
+
+  document.getElementById('diagArea').innerHTML=html;
+
+  if(window.innerWidth<=700){
+    closeDrawer();
+  }
+  
+  const da=document.getElementById('diagArea');
+  if(da) da.scrollTop=0;
+}
+
+/* ══ MOBILE DRAWER ══ */
+function openDrawer(){
+  document.getElementById('colLeft').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+  document.body.style.overflow='hidden';
+}
+function closeDrawer(){
+  document.getElementById('colLeft').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+  document.body.style.overflow='';
+}
+function toggleDrawer(){
+  const d=document.getElementById('colLeft');
+  d.classList.contains('open')?closeDrawer():openDrawer();
+}
+
+function updateFab(){
+  const n=selected.size;
+  const badge=document.getElementById('fabBadge');
+  const fab=document.getElementById('mobFab');
+  if(badge){
+    badge.textContent=n;
+    badge.classList.toggle('empty',n===0);
+  }
+  if(fab){
+    fab.style.background=n>0?'var(--red)':'var(--ink)';
+  }
+}
+
+/* ══ THEME TOGGLE ══ */
+function toggleTheme() {
+  const html = document.documentElement;
+  const currentTheme = html.getAttribute('data-theme');
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  
+  html.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+  
+  const icon = document.getElementById('themeIcon');
+  icon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+}
+
+function initTheme() {
+  const savedTheme = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+  
+  document.documentElement.setAttribute('data-theme', theme);
+  const icon = document.getElementById('themeIcon');
+  icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+}
+
+function setTitlebarH(){
+  const tb=document.getElementById('titlebar');
+  if(tb) document.documentElement.style.setProperty('--titlebar-h', tb.offsetHeight+'px');
+}
+
+function setupMobileLayout() {
+  if (isMobileView()) {
+    document.getElementById('mobFab').style.display = 'flex';
+    if (selected.size === 0) {
+      clearAll();
+    }
+  } else {
+    document.getElementById('mobFab').style.display = 'none';
+    closeDrawer();
+  }
+}
+
+setTitlebarH();
+setupMobileLayout();
+window.addEventListener('resize',()=>{
+  setTitlebarH();
+  setupMobileLayout();
+});
+
+/* ══ PWA SERVICE WORKER — Network-First ══ */
+let swRegistration = null;
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      swRegistration = await navigator.serviceWorker.register('./sw.js');
+
+      // A new SW is waiting (new deploy detected) — show toast
+      const handleWaiting = () => {
+        document.getElementById('updateToast').classList.add('show');
+      };
+
+      if (swRegistration.waiting) {
+        // Already waiting on page load (user had old tab open)
+        handleWaiting();
+      }
+
+      swRegistration.addEventListener('updatefound', () => {
+        const newWorker = swRegistration.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            handleWaiting();
+          }
+        });
+      });
+
+      // When the SW activates after SKIP_WAITING, reload the page
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
+
+      // Periodically check for SW updates (every 60 s while app is open)
+      setInterval(() => swRegistration.update(), 60_000);
+
+    } catch (err) {
+      console.warn('[SW] Registration failed:', err);
+    }
+  });
+}
+
+function applyUpdate() {
+  if (swRegistration && swRegistration.waiting) {
+    swRegistration.waiting.postMessage('SKIP_WAITING');
+  }
+}
+
+function dismissUpdate() {
+  document.getElementById('updateToast').classList.remove('show');
+}
+
+/* ══ PWA INSTALL PROMPT ══ */
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  document.getElementById('installBar').classList.add('show');
+});
+function doInstall(){
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(()=>{
+    deferredPrompt=null;
+    dismissInstall();
+  });
+}
+function dismissInstall(){
+  document.getElementById('installBar').classList.remove('show');
+}
+window.addEventListener('appinstalled',()=>dismissInstall());
+
+/* ══ INITIALIZATION ══ */
+initTheme();
+buildSymList();
+updateFab();
+</script>
+</body>
+</html>
