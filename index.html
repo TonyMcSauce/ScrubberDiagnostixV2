@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="ScrubberDx"/>
 <meta name="description" content="Hydrostatic drive fault reference — SP750 pump and CA 100-100 motors"/>
-<title>ScrubberDiagnostix v7.3 — Jwaneng Mine</title>
+<title>ScrubberDiagnostix v7.2 — Jwaneng Mine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet"/>
 <style>
@@ -487,6 +487,93 @@ body{
   color:var(--ink2);
 }
 
+/* ══ RESULTS ENTRANCE ANIMATIONS ══════════════════════════
+   GPU-only: only opacity + transform, never layout properties.
+   .diag-area gets .results-animating while cards enter,
+   then it's removed. Cards use CSS custom property --i for stagger. */
+
+/* Whole results pane slides up and fades in */
+@keyframes results-enter{
+  from{opacity:0;transform:translateY(16px);}
+  to{opacity:1;transform:translateY(0);}
+}
+/* Individual cards rise up from slightly lower */
+@keyframes card-enter{
+  from{opacity:0;transform:translateY(20px);}
+  to{opacity:1;transform:translateY(0);}
+}
+/* Banners (cascade/recovery/multi) drop from above */
+@keyframes banner-enter{
+  from{opacity:0;transform:translateY(-10px);}
+  to{opacity:1;transform:translateY(0);}
+}
+/* Measurement rows fade in */
+@keyframes row-enter{
+  from{opacity:0;transform:translateX(-6px);}
+  to{opacity:1;transform:translateX(0);}
+}
+/* Node highlight pulse — draws the eye after highlight */
+@keyframes node-pulse{
+  0%{transform:scale(1);}
+  40%{transform:scale(1.08);}
+  70%{transform:scale(0.97);}
+  100%{transform:scale(1);}
+}
+/* Button shimmer on press */
+@keyframes btn-shimmer{
+  0%{background-position:200% center;}
+  100%{background-position:-200% center;}
+}
+
+.diag-area.results-animating{
+  animation:results-enter 0.36s cubic-bezier(0.16,1,0.3,1) both;
+}
+/* Banners animate in fast */
+.diag-area.results-animating .multi-banner,
+.diag-area.results-animating .cascade-box,
+.diag-area.results-animating .recovery-box{
+  animation:banner-enter 0.28s cubic-bezier(0.16,1,0.3,1) both;
+  animation-delay:calc(var(--bi,0) * 60ms + 40ms);
+}
+/* Fault cards stagger */
+.diag-area.results-animating .fault-block{
+  animation:card-enter 0.38s cubic-bezier(0.16,1,0.3,1) both;
+  animation-delay:calc(var(--ci,0) * 70ms + 120ms);
+}
+/* Measurement rows stagger inside card */
+.diag-area.results-animating .mrow{
+  animation:row-enter 0.26s cubic-bezier(0.16,1,0.3,1) both;
+  animation-delay:calc(var(--ri,0) * 40ms + 200ms);
+}
+/* Section titles */
+.diag-area.results-animating .section-title{
+  animation:banner-enter 0.24s cubic-bezier(0.16,1,0.3,1) both;
+  animation-delay:calc(var(--bi,0) * 60ms + 60ms);
+}
+
+/* System node pulse on highlight */
+.sys-node.hl-pulse{
+  animation:node-pulse 0.5s cubic-bezier(0.16,1,0.3,1);
+}
+
+/* Calc button shimmer while results are building */
+.calc-btn.running{
+  background:linear-gradient(
+    90deg,
+    var(--red) 0%,
+    #e85550 40%,
+    var(--red) 60%,
+    var(--red) 100%
+  );
+  background-size:200% 100%;
+  animation:btn-shimmer 0.6s linear 1;
+}
+
+/* Empty state animates in too */
+.diag-empty{
+  animation:results-enter 0.4s cubic-bezier(0.16,1,0.3,1) both;
+}
+
 /* ══ MOBILE DRAWER — Left-Side Slide ══ */
 .mob-toggle{display:none;}
 .mob-fab{display:none;}
@@ -499,66 +586,81 @@ body{
     overflow:visible;
   }
 
-  /* Left-side drawer
-     Key jitter fix: NO will-change at rest — only promote to GPU
-     the moment the drawer becomes active via .open class.
-     translateX(-100%) keeps it exactly off-screen with no sub-pixel rounding. */
+  /* ── Drawer shell ───────────────────────────────────────
+     Rest state: NO will-change — compositor layer only while animating.
+     translateX(-100%) keeps it pixel-exact off-screen.             */
   .col-left{
     position:fixed;
-    top:0;
-    left:0;
-    bottom:0;
-    right:auto;
-    width:min(85vw, 320px);
+    top:0; left:0; bottom:0; right:auto;
+    width:min(85vw,320px);
     z-index:300;
     border-left:none;
     border-right:3px solid var(--bdr);
     border-bottom:none;
     transform:translateX(-100%);
-    /* No will-change here — avoids compositor layer creation at rest */
-    transition:transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    max-height:none;
-    height:100%;
+    transition:transform 0.32s cubic-bezier(0.32,0.72,0,1);
+    max-height:none; height:100%;
     box-shadow:none;
     overflow:hidden;
-    display:flex;
-    flex-direction:column;
-    /* Prevent subpixel blurring on webkit */
+    display:flex; flex-direction:column;
     -webkit-backface-visibility:hidden;
     backface-visibility:hidden;
   }
-  /* Open: promote to GPU layer NOW, slide in */
+  /* Open: promote layer, glide in with Apple-style decelerate curve */
   .col-left.open{
     transform:translateX(0);
     will-change:transform;
-    box-shadow:6px 0 32px rgba(0,0,0,0.28), 2px 0 6px rgba(0,0,0,0.14);
-    transition:transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow:8px 0 40px rgba(0,0,0,0.32),2px 0 8px rgba(0,0,0,0.12);
+    transition:transform 0.32s cubic-bezier(0.32,0.72,0,1);
   }
-  /* Close: accelerate out, drop layer hint once done (handled in JS) */
+  /* Close: snappy ease-in so it feels responsive */
   .col-left.closing{
     transform:translateX(-100%);
     will-change:transform;
-    transition:transform 0.24s cubic-bezier(0.55, 0.0, 1.0, 0.45);
+    transition:transform 0.22s cubic-bezier(0.4,0,1,1);
     box-shadow:none;
   }
-  /* Kill item animations immediately on close so they don't replay */
-  .col-left.closing .cat-strip,
-  .col-left.closing .sym-item{
-    animation:none !important;
-    opacity:1;
-  }
 
-  /* Staggered item reveal — fade + subtle Y shift (avoids fighting drawer translateX) */
-  .col-left.open .cat-strip,
-  .col-left.open .sym-item{
-    animation:sym-in 0.22s ease both;
+  /* Items are invisible by default in the drawer.
+     They only animate when .items-ready is added AFTER the drawer lands.
+     This is the key fix: no child animations compete with the drawer slide. */
+  .col-left .sym-item,
+  .col-left .cat-strip{
+    opacity:0;
+    transform:translateY(10px);
+    /* No transition here — animation is used instead */
   }
+  /* When drawer is closing or at rest, items are visible (no flash on re-open prep) */
+  .col-left.closing .sym-item,
+  .col-left.closing .cat-strip{
+    opacity:1 !important;
+    transform:none !important;
+    animation:none !important;
+  }
+  /* .items-ready triggers the stagger — added by JS after drawer transition ends */
+  .col-left.items-ready .cat-strip{
+    animation:sym-in 0.28s cubic-bezier(0.16,1,0.3,1) both;
+  }
+  .col-left.items-ready .sym-item{
+    animation:sym-in 0.3s cubic-bezier(0.16,1,0.3,1) both;
+  }
+  /* animation-delay is set inline per-element by JS — no loop reflow,
+     just a single classList.add that triggers CSS to pick up the delays */
   @keyframes sym-in{
-    from{opacity:0;transform:translateY(6px);}
+    from{opacity:0;transform:translateY(10px);}
     to{opacity:1;transform:translateY(0);}
   }
 
-  /* Overlay — simple opacity only (no backdrop-filter = no GPU thrash) */
+  /* ── FAB spring press ───────────────────────────────── */
+  .mob-fab:active{
+    transform:translateX(-50%) scale(0.92) !important;
+    transition:transform 0.1s cubic-bezier(0.4,0,0.2,1),
+               box-shadow 0.1s ease,
+               background 0.1s ease !important;
+    box-shadow:0 1px 6px rgba(0,0,0,.3) !important;
+  }
+
+  /* ── Overlay — simple opacity only (no backdrop-filter = no GPU thrash) ── */
   .drawer-overlay{
     display:block;
     position:fixed;
@@ -1683,26 +1785,54 @@ function buildSymList(){
   const calcBtn = document.getElementById('calcBtn');
   if(calcBtn) calcBtn.disabled = (selected.size === 0);
 
-  // Re-apply stagger delays if drawer is currently open (re-render after selection)
-  // Don't re-stagger on selection change — only on fresh open
+  // After DOM re-render from selection toggle, ensure items are fully visible
+  // Never re-trigger stagger animations on selection change — only openDrawer does that
   const drawer = document.getElementById('colLeft');
-  if(drawer && drawer.classList.contains('open')){
+  if(drawer && drawer.classList.contains('items-ready')){
     const items = drawer.querySelectorAll('.sym-item, .cat-strip');
-    // Remove animation so toggling a selection doesn't re-animate the whole list
-    items.forEach((el) => {
-      el.style.animation = 'none';
+    items.forEach(el => {
       el.style.opacity = '1';
+      el.style.transform = 'none';
+      el.style.animation = 'none';
     });
   }
 }
 
 function toggleSym(id){
-  selected.has(id) ? selected.delete(id) : selected.add(id);
+  const wasSelected = selected.has(id);
+  wasSelected ? selected.delete(id) : selected.add(id);
+  haptic(wasSelected ? 6 : 8);
   buildSymList();
   updateFab();
 }
 
+/* ══ HAPTIC FEEDBACK ══════════════════════════════════════
+   Uses Web Vibration API. Falls back silently where unsupported.
+   iOS Safari does not support vibrate() but the AudioContext
+   taptic-style click fires fine on interaction via touchstart.   */
+function haptic(ms){
+  if(navigator.vibrate){ navigator.vibrate(ms); }
+}
+function hapticPattern(arr){
+  if(navigator.vibrate){ navigator.vibrate(arr); }
+}
+
+/* ══ NODE PULSE on highlight ════════════════════════════ */
+function pulseNode(el){
+  if(!el) return;
+  el.classList.remove('hl-pulse');
+  // Force reflow — only single element, negligible cost
+  void el.offsetWidth;
+  el.classList.add('hl-pulse');
+  el.addEventListener('animationend', () => el.classList.remove('hl-pulse'), {once:true});
+}
+
 function updateNodes(){
+  const prev = {};
+  Object.entries(NODE_MAP).forEach(([k,id])=>{
+    const el = document.getElementById(id);
+    if(el) prev[k] = el.className;
+  });
   Object.values(NODE_MAP).forEach(id=>{
     const el=document.getElementById(id);
     if(el)el.className='sys-node';
@@ -1715,8 +1845,14 @@ function updateNodes(){
       if(v==='red')red.add(k); else amber.add(k);
     });
   });
-  amber.forEach(k=>{const el=document.getElementById(NODE_MAP[k]);if(el)el.className='sys-node hl';});
-  red.forEach(k=>{const el=document.getElementById(NODE_MAP[k]);if(el)el.className='sys-node hl-red';});
+  amber.forEach(k=>{
+    const el=document.getElementById(NODE_MAP[k]);
+    if(el){ el.className='sys-node hl'; if(prev[k]!=='sys-node hl') pulseNode(el); }
+  });
+  red.forEach(k=>{
+    const el=document.getElementById(NODE_MAP[k]);
+    if(el){ el.className='sys-node hl-red'; if(prev[k]!=='sys-node hl-red') pulseNode(el); }
+  });
 }
 
 function isMobileView(){
@@ -1741,8 +1877,10 @@ function clearAll(){
   buildSymList();
   updateNodes();
   updateFab();
+  haptic(8);
   const msg=getEmptyMessage();
-  document.getElementById('diagArea').innerHTML=`
+  const da = document.getElementById('diagArea');
+  da.innerHTML=`
     <div class="diag-empty">
       <div class="de-title">${msg.title}</div>
       <div class="de-body">${msg.body}</div>
@@ -1752,17 +1890,26 @@ function clearAll(){
 /* Activated via explicit action click */
 function evaluateDiagnostics() {
   if(selected.size === 0) return;
-  
-  // 1. Process block highlight changes on top layout strip
-  updateNodes();
-  
-  // 2. Compute markup transformations for layout panel
-  const selSyms=SYMS.filter(s=>selected.has(s.id));
-  let html='';
 
-  if(selected.size>1){
-    const labels=selSyms.map(s=>`<b>${s.label}</b>`).join(' + ');
-    html+=`<div class="multi-banner">
+  // Button shimmer feedback
+  const btn = document.getElementById('calcBtn');
+  if(btn){ btn.classList.add('running'); btn.addEventListener('animationend',()=>btn.classList.remove('running'),{once:true}); }
+
+  // Haptic: firm press + confirmation pattern after results land
+  haptic(15);
+
+  // 1. Node highlights with pulse
+  updateNodes();
+
+  // 2. Build HTML with animation index attributes
+  const selSyms = SYMS.filter(s=>selected.has(s.id));
+  let html = '';
+  let bannerIdx = 0;
+  let cardIdx = 0;
+
+  if(selected.size > 1){
+    const labels = selSyms.map(s=>`<b>${s.label}</b>`).join(' + ');
+    html += `<div class="multi-banner" style="--bi:${bannerIdx++}">
       <div class="mb-title">⊕ MULTI-SYMPTOM ANALYSIS — ${selected.size} symptoms selected</div>
       <div class="mb-body">Analysing: ${labels}.<br>Components appearing across multiple fault sections below are the highest priority to investigate first.</div>
     </div>`;
@@ -1770,7 +1917,7 @@ function evaluateDiagnostics() {
 
   selSyms.forEach(sym=>{
     if(sym.cascade){
-      html+=`<div class="cascade-box">
+      html += `<div class="cascade-box" style="--bi:${bannerIdx++}">
         <div class="cb-title">⚡ ${sym.label} — cascade logic</div>
         <div class="cb-body">${sym.cascade}</div>
       </div>`;
@@ -1779,7 +1926,7 @@ function evaluateDiagnostics() {
 
   selSyms.forEach(sym=>{
     if(sym.recovery){
-      html+=`<div class="recovery-box">
+      html += `<div class="recovery-box" style="--bi:${bannerIdx++}">
         <div class="rb-title">🔧 ${sym.recovery.title}</div>
         ${sym.recovery.steps.map((s,i)=>`<div class="rb-step"><b>${i+1}.</b> ${s}</div>`).join('')}
       </div>`;
@@ -1787,11 +1934,11 @@ function evaluateDiagnostics() {
   });
 
   selSyms.forEach((sym,idx)=>{
-    if(selected.size>1){
-      html+=`<div class="section-title">▸ FAULTS FOR: ${sym.label}</div>`;
+    if(selected.size > 1){
+      html += `<div class="section-title" style="--bi:${bannerIdx++}">▸ FAULTS FOR: ${sym.label}</div>`;
     }
-    html+=sym.faults.map(f=>`
-      <div class="fault-block">
+    html += sym.faults.map(f=>`
+      <div class="fault-block" style="--ci:${cardIdx++}">
         <div class="fault-top">
           <span class="f-rank">#${f.rank}</span>
           <span class="f-name">${f.name}</span>
@@ -1799,8 +1946,8 @@ function evaluateDiagnostics() {
         </div>
         <div class="fault-body">
           <div class="sec-lbl">Measure at</div>
-          ${f.measures.map(m=>`
-            <div class="mrow">
+          ${f.measures.map((m,ri)=>`
+            <div class="mrow" style="--ri:${ri}">
               <span class="m-port">${m.port}</span>
               <span class="m-desc">${m.desc}</span>
               <span class="m-val ${getMv(m.type)}">${m.val}</span>
@@ -1809,25 +1956,37 @@ function evaluateDiagnostics() {
           ${f.steps.map(s=>`<div class="step">${s}</div>`).join('')}
         </div>
       </div>`).join('');
-    if(selected.size>1&&idx<selSyms.length-1) html+=`<div class="sym-divider"></div>`;
+    if(selected.size>1 && idx<selSyms.length-1) html += `<div class="sym-divider"></div>`;
   });
 
-  document.getElementById('diagArea').innerHTML=html;
+  // 3. Inject HTML
+  const da = document.getElementById('diagArea');
+  da.innerHTML = html;
 
-  // If on mobile view layout, collapse viewport drawer interface
-  if(window.innerWidth<=700){
-    closeDrawer();
-  }
-  
-  // Reset viewing location position index context 
-  const da=document.getElementById('diagArea');
-  if(da) da.scrollTop=0;
+  // 4. Trigger entrance animations — next frame so DOM is painted first
+  requestAnimationFrame(()=>{
+    da.classList.remove('results-animating');
+    void da.offsetWidth; // single reflow on the container, not each child
+    da.classList.add('results-animating');
+    // Clean up class after all animations settle (~1.2s max)
+    setTimeout(()=>da.classList.remove('results-animating'), 1400);
+  });
+
+  // 5. Confirmation haptic after results land
+  setTimeout(()=>hapticPattern([10,50,10]), 350);
+
+  // 6. Close drawer on mobile
+  if(window.innerWidth <= 700){ closeDrawer(); }
+
+  // 7. Smooth scroll to top
+  da.scrollTo({top:0, behavior:'smooth'});
 }
 </script>
 
 <script>
 /* ══ MOBILE DRAWER — Left-Side Slide ══ */
 let _drawerClosingTimer = null;
+let _drawerStaggerTimer = null;
 
 function openDrawer(){
   const drawer = document.getElementById('colLeft');
@@ -1835,21 +1994,21 @@ function openDrawer(){
   const fab = document.getElementById('mobFab');
   const label = document.getElementById('fabLabel');
 
-  // Cancel any in-progress close animation
+  // Cancel any in-progress close or stagger timer
   if(_drawerClosingTimer){ clearTimeout(_drawerClosingTimer); _drawerClosingTimer = null; }
-  drawer.classList.remove('closing');
+  if(_drawerStaggerTimer){ clearTimeout(_drawerStaggerTimer); _drawerStaggerTimer = null; }
 
-  // Apply stagger delays to items — force reflow so animation replays on each open
+  // Remove leftover state classes
+  drawer.classList.remove('closing','items-ready');
+
+  // ── Pre-set stagger delays on items WITHOUT touching animation property.
+  //    Items start invisible (CSS default). Delays are just data at this point.
   const items = drawer.querySelectorAll('.sym-item, .cat-strip');
   items.forEach((el, i) => {
-    el.style.animation = 'none';
-    el.style.opacity = '';
-    // Force reflow to reset animation state
-    void el.offsetWidth;
-    el.style.animation = '';
-    el.style.animationDelay = Math.min(i * 14, 220) + 'ms';
+    el.style.animationDelay = Math.min(i * 18, 260) + 'ms';
   });
 
+  // ── Slide drawer in
   drawer.classList.add('open');
   overlay.classList.add('show');
 
@@ -1861,6 +2020,15 @@ function openDrawer(){
   fab.classList.add('is-open');
   fab.style.background = 'var(--ink2)';
   if(label) label.textContent = 'CLOSE';
+
+  haptic(6);
+
+  // ── After drawer transition finishes (320ms), trigger item stagger.
+  //    This is the key: children never compete with the drawer slide.
+  _drawerStaggerTimer = setTimeout(() => {
+    drawer.classList.add('items-ready');
+    _drawerStaggerTimer = null;
+  }, 330);
 }
 
 function closeDrawer(){
@@ -1870,6 +2038,10 @@ function closeDrawer(){
   const label = document.getElementById('fabLabel');
   const n = typeof selected !== 'undefined' ? selected.size : 0;
 
+  // Cancel pending stagger if drawer closes before it fires
+  if(_drawerStaggerTimer){ clearTimeout(_drawerStaggerTimer); _drawerStaggerTimer = null; }
+
+  drawer.classList.remove('items-ready');
   drawer.classList.add('closing');
   drawer.classList.remove('open');
   overlay.classList.remove('show');
@@ -1883,12 +2055,14 @@ function closeDrawer(){
   fab.style.background = n > 0 ? 'var(--red)' : 'var(--ink)';
   if(label) label.textContent = 'SYMPTOMS';
 
-  // After close animation: remove closing + release GPU layer (will-change:auto)
+  haptic(6);
+
+  // After close animation: strip closing class and release GPU layer
   _drawerClosingTimer = setTimeout(() => {
     drawer.classList.remove('closing');
     drawer.style.willChange = 'auto';
     _drawerClosingTimer = null;
-  }, 240);
+  }, 260);
 }
 
 function toggleDrawer(){
