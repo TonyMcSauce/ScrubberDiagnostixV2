@@ -1924,8 +1924,10 @@ function evaluateDiagnostics() {
     }
   });
 
+ const seenRecoveries = new Set();
   selSyms.forEach(sym=>{
-    if(sym.recovery){
+    if(sym.recovery && !seenRecoveries.has(sym.recovery.title)){
+      seenRecoveries.add(sym.recovery.title);
       html += `<div class="recovery-box" style="--bi:${bannerIdx++}">
         <div class="rb-title">🔧 ${sym.recovery.title}</div>
         ${sym.recovery.steps.map((s,i)=>`<div class="rb-step"><b>${i+1}.</b> ${s}</div>`).join('')}
