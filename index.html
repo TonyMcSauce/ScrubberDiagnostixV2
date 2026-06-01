@@ -975,6 +975,22 @@ body{
 </button>
 
 <script>
+
+const manualJogRecovery = {
+  title:'MANUAL DRUM JOG PROCEDURE',
+  steps:[
+    'Confirm pressure IS present at MA/MB before attempting manual control',
+    'Remove solenoid power from EP control — disconnect XA and XB connectors',
+    'Switch pump to manual hydraulic control mode (direct manual actuation)',
+    'Actuate pump FORWARD (A-port to motors) — apply a brief controlled displacement stroke',
+    'Actuate pump REVERSE (B-port to motors) — apply a brief reverse stroke immediately after',
+    'Repeat forward/reverse cycling continuously to progressively build drum momentum',
+    'As drum picks up speed, gradually increase stroke duration and reduce reversal frequency',
+    'Once drum is rotating freely at consistent speed, hold the forward stroke steady',
+    'Reconnect solenoid connectors (XA and XB) with drum already in motion',
+    'Restore EP auto control — verify stable drum speed is maintained before returning to production'
+  ]
+};
 const SYMS = [
   /* ══════════════════════════════════════════
      PRESSURE
@@ -1282,21 +1298,7 @@ const SYMS = [
     id:'d1', cat:'DRIVE', label:'Drum not rotating', chip:'DRIVE LOSS', col:'#B02E28',
     hl:{pump:'amber', drum:'red'},
     cascade:'Drum stationary despite pressure present. Multiple possible causes from hydraulic control to mechanical coupling to motor connection errors. Check pressure first to classify the fault, then work outward from the pump.',
-    recovery:{
-      title:'MANUAL DRUM JOG RECOVERY — OVERLOADED FEED',
-      steps:[
-        'Confirm pressure IS present at MA/MB before attempting manual control',
-        'Remove solenoid power from EP control — disconnect XA and XB connectors from solenoid',
-        'Switch pump to manual hydraulic control mode (direct manual actuation)',
-        'Actuate pump FORWARD (A-port to motors) — apply a brief controlled displacement stroke',
-        'Actuate pump REVERSE (B-port to motors) — apply a brief reverse stroke immediately after',
-        'Repeat the forward/reverse cycling continuously to progressively build drum momentum',
-        'As drum begins to move, gradually increase stroke duration in each direction',
-        'Once drum is rotating freely and consistently, stop cycling and hold forward stroke',
-        'Reconnect solenoid connectors (XA and XB) with drum already in motion',
-        'Restore EP auto control — verify stable drum speed is maintained before returning to full production'
-      ]
-    },
+   recovery: manualJogRecovery,,
     faults:[
       {rank:1, name:'Drum overloaded with feed material', lk:'H',
        measures:[
@@ -1342,22 +1344,7 @@ const SYMS = [
   {
     id:'d2', cat:'DRIVE', label:'Drum sluggish / low speed', chip:'SPEED LOSS', col:'#8F5506',
     hl:{pump:'amber', m1:'amber', m2:'amber', m3:'amber', m4:'amber'},
-    recovery:{
-      title:'MANUAL DRUM JOG PROCEDURE — SLUGGISH / OVERLOADED DRUM',
-      steps:[
-        'Confirm pressure IS present at MA/MB before attempting manual control',
-        'If drum is moving but very slowly, assess whether overloaded feed is the cause before jogging',
-        'Remove solenoid power from EP control — disconnect XA and XB connectors',
-        'Switch pump to manual hydraulic control mode (direct manual actuation)',
-        'Actuate pump FORWARD (A-port to motors) — apply a brief controlled displacement stroke',
-        'Actuate pump REVERSE (B-port to motors) — apply a brief reverse stroke immediately after',
-        'Repeat forward/reverse cycling continuously — each cycle loosens and redistributes the feed charge',
-        'As drum picks up speed, gradually increase stroke duration and reduce reversal frequency',
-        'Once drum is rotating freely at consistent speed, hold the forward stroke steady',
-        'Reconnect solenoid connectors (XA and XB) with drum already in motion',
-        'Restore EP auto control — monitor drum speed for stability before returning to full production feed rate'
-      ]
-    },
+   recovery: manualJogRecovery,
     faults:[
       {rank:1, name:'Drum overloaded — feed too heavy to accelerate', lk:'H',
        measures:[
