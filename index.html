@@ -1298,7 +1298,7 @@ const SYMS = [
     id:'d1', cat:'DRIVE', label:'Drum not rotating', chip:'DRIVE LOSS', col:'#B02E28',
     hl:{pump:'amber', drum:'red'},
     cascade:'Drum stationary despite pressure present. Multiple possible causes from hydraulic control to mechanical coupling to motor connection errors. Check pressure first to classify the fault, then work outward from the pump.',
-   recovery: manualJogRecovery,,
+   recovery: manualJogRecovery,
     faults:[
       {rank:1, name:'Drum overloaded with feed material', lk:'H',
        measures:[
