@@ -8,7 +8,13 @@ const NETWORK_TIMEOUT_MS = 3000;           // fall back to cache after 3 s
 
 const PRECACHE_ASSETS = [
   './',
-  './index.html'
+  './index.html',
+  './favicon.svg',
+  './favicon-32x32.png',
+  './favicon-16x16.png',
+  './apple-touch-icon.png',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 // ── INSTALL: pre-cache shell ─────────────────────────────────────────────────
