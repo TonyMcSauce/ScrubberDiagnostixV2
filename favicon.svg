@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Background -->
+  <rect width="32" height="32" rx="4" fill="#181816"/>
+  <!-- Drum ring -->
+  <circle cx="16" cy="16" r="13" fill="none" stroke="#EF9F27" stroke-width="2"/>
+  <!-- Swashplate angle line — the signature element -->
+  <line x1="9" y1="23" x2="23" y2="9" stroke="#EF9F27" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Hub outer ring -->
+  <circle cx="16" cy="16" r="4" fill="#181816" stroke="#EF9F27" stroke-width="1.8"/>
+  <!-- Hub centre dot in red -->
+  <circle cx="16" cy="16" r="1.8" fill="#B02E28"/>
+</svg>
