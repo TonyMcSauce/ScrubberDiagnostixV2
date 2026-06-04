@@ -2,7 +2,7 @@
 // ScrubberDiagnostix — Service Worker  (Network-First Strategy)
 // Bump APP_VERSION on every deploy to bust the cache instantly.
 // ─────────────────────────────────────────────────────────────────────────────
-const APP_VERSION = 'scrubber-dx-v7.4';   // ← increment this on every deploy
+const APP_VERSION = 'scrubber-dx-v7.5';   // ← increment this on every deploy
 const CACHE       = `cache-${APP_VERSION}`;
 const NETWORK_TIMEOUT_MS = 3000;           // fall back to cache after 3 s
 
