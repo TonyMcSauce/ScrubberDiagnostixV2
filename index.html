@@ -4,16 +4,12 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
 <meta name="theme-color" content="#181816"/>
-<link rel="icon" type="image/svg+xml" href="./favicon.svg"/>
-<link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png"/>
-<link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png"/>
-<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="ScrubberDx"/>
 <meta name="description" content="Hydrostatic drive fault reference — SP750 pump and CA 100-100 motors"/>
-<title>ScrubberDiagnostix v7.4 — Jwaneng Mine</title>
+<title>ScrubberDiagnostix v7.5 — Jwaneng Mine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet"/>
 <style>
@@ -889,6 +885,72 @@ body{
 .ut-btn:hover{opacity:.85;}
 .ut-close{background:none;border:none;color:var(--ink3);cursor:pointer;font-size:13px;padding:2px 4px;line-height:1;transition:color .15s;}
 .ut-close:hover{color:#fff;}
+
+/* ══ FAULT TREE ANALYSIS ════════════════════════════════ */
+.ftree-outer{
+  margin-bottom:14px;
+}
+.ftree-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:6px 14px 5px;
+  background:var(--ink);
+  border-bottom:2px solid var(--bdr);
+}
+.ftree-header-lbl{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  color:#EF9F27;
+  font-weight:700;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.ftree-header-sub{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  color:#555;
+  letter-spacing:.06em;
+}
+.ftree-canvas{
+  background:var(--surface);
+  border:1.5px solid var(--bdr);
+  border-top:none;
+  padding:14px 12px 10px;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+}
+.ftree-canvas::-webkit-scrollbar{height:3px;}
+.ftree-canvas::-webkit-scrollbar-thumb{background:var(--blight);}
+.ftree-divider{
+  height:1px;
+  background:var(--blight);
+  margin:8px 0;
+}
+.ftree-hint{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  color:var(--ink3);
+  padding:4px 14px 6px;
+  background:var(--surface);
+  border:1.5px solid var(--bdr);
+  border-top:none;
+  border-bottom:2px solid var(--bdr);
+  letter-spacing:.04em;
+}
+/* Animate fault tree with the rest of the banners */
+.diag-area.results-animating .ftree-outer{
+  animation:banner-enter 0.32s cubic-bezier(0.16,1,0.3,1) both;
+  animation-delay:calc(var(--bi,0) * 60ms + 30ms);
+}
+/* Highlight pulse when node is clicked */
+.fault-block.fta-highlight{
+  outline:2px solid var(--amber-mid);
+  outline-offset:2px;
+  transition:outline .15s;
+}
+
 </style>
 </head>
 <body>
@@ -913,7 +975,7 @@ body{
   </div>
   <div class="title-meta">
     <div class="t-units">BOOST: kPa &nbsp;|&nbsp; MAIN: MPa &nbsp;|&nbsp; SWASHPLATE ≈10° OP.</div>
-    <div class="t-copy">© 2026 Anthony Masuga &nbsp;·&nbsp; v7.4</div>
+    <div class="t-copy">© 2026 Anthony Masuga &nbsp;·&nbsp; v7.5</div>
   </div>
 </div>
 
@@ -980,50 +1042,179 @@ body{
 
 <script>
 
-const aerationIdentification = {
-  title:'HOW TO IDENTIFY AERATED OIL',
-  steps:[
-    'Look at reservoir sight glass: healthy oil is clear amber; aerated oil is milky, cloudy, or foamy',
-    'Check reservoir surface: visible froth or foam layer confirms active air entrainment',
-    'Listen to pump: aeration produces a high-pitched whine or screech; cavitation produces a crackling/rattling sound like gravel',
-    'Watch the pressure gauge: aerated system causes the needle to bounce or hunt rather than hold steady',
-    'Check case drain return line at reservoir: bubbles in the return flow confirm air is circulating in the system',
-    'Feel the drum response: a spongy or lurching start under load is a strong aeration indicator',
-    'If milky oil is confirmed: do NOT continue operation — air-entrained oil has severely reduced lubrication film strength'
-  ]
-};
+/* ══ FAULT TREE ANALYSIS — v7.5 ═════════════════════════════════════════
+   OR-gate trees built from SYMS fault data.
+   Clickable leaf nodes scroll to the matching fault card.
+═══════════════════════════════════════════════════════════════════════ */
 
-const airBleedProcedure = {
-  title:'AIR BLEED PROCEDURE — SP750 CHARGE CIRCUIT',
-  steps:[
-    'STOP: de-energize pump and solenoid completely before attempting to bleed',
-    'Top up reservoir to minimum mark first — bleeding with low oil level will draw more air in',
-    'Locate the charge circuit bleed screw on the SP750 pump body (top face, near the boost outlet port)',
-    'Place a clean rag under the bleed point — oil will follow the air out',
-    'Crack the bleed screw open slowly (quarter turn only) — you will hear a hiss as air escapes',
-    'Hold open until oil flows steadily with no visible bubbles, then close the screw firmly',
-    'Re-check reservoir level and top up again if it dropped during bleeding',
-    'Start pump on idle with zero drum load — run for 5 minutes minimum before applying any load',
-    'Monitor boost at MK4: should stabilize at ~1200 kPa within 2 minutes of idle run',
-    'If foam reforms quickly after bleeding: the air source is still active — inspect suction line for leaks or low oil before restarting under load'
-  ]
-};
+function escSvg(s){
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
 
-const manualJogRecovery = {
-  title:'MANUAL DRUM JOG PROCEDURE',
-  steps:[
-    'Confirm pressure IS present at MA/MB before attempting manual control',
-    'Remove solenoid power from EP control — disconnect XA and XB connectors',
-    'Switch pump to manual hydraulic control mode (direct manual actuation)',
-    'Actuate pump FORWARD (A-port to motors) — apply a brief controlled displacement stroke',
-    'Actuate pump REVERSE (B-port to motors) — apply a brief reverse stroke immediately after',
-    'Repeat forward/reverse cycling continuously to progressively build drum momentum',
-    'As drum picks up speed, gradually increase stroke duration and reduce reversal frequency',
-    'Once drum is rotating freely at consistent speed, hold the forward stroke steady',
-    'Reconnect solenoid connectors (XA and XB) with drum already in motion',
-    'Restore EP auto control — verify stable drum speed is maintained before returning to production'
-  ]
-};
+function wrapSvgText(text, maxLen){
+  if(text.length <= maxLen) return [text];
+  const words = text.split(' ');
+  const lines = [''];
+  for(const w of words){
+    const candidate = (lines[lines.length-1] + ' ' + w).trim();
+    if(candidate.length <= maxLen){
+      lines[lines.length-1] = candidate;
+    } else {
+      if(lines.length >= 2){
+        // Already on line 2 — truncate
+        lines[lines.length-1] = lines[lines.length-1].slice(0, maxLen-1) + '…';
+        break;
+      }
+      lines.push(w);
+    }
+  }
+  return lines.filter(l => l.length > 0);
+}
+
+function buildFaultTreeSVG(sym){
+  const faults = sym.faults;
+  const N = faults.length;
+
+  // Node dimensions
+  const NW = 148, NH = 60, NG = 14;
+  const totalNW = N * NW + (N-1) * NG;
+  const W  = Math.max(340, totalNW + 40);
+  const H  = 196;
+
+  // Colours (matching app tokens)
+  const lkFill   = {H:'FCECEA', M:'FDF2E0', L:'EDF5E0'};
+  const lkStroke = {H:'B02E28', M:'8F5506', L:'346010'};
+
+  // Layout
+  const TEW = Math.min(W - 40, 270), TEH = 44;
+  const TEX = (W - TEW) / 2, TEY = 8;
+  const CX  = W / 2;
+
+  // OR gate
+  const GY = TEY + TEH + 11;
+  const GR = 19;
+  const GCY = GY + GR;
+
+  // Cross-bar and nodes
+  const CBY = GCY + GR + 13;
+  const NY  = CBY + 14;
+  const nodeStartX = (W - totalNW) / 2;
+  const nodeCXs = faults.map((_, i) => nodeStartX + i * (NW + NG) + NW / 2);
+
+  let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" `
+        + `style="width:100%;display:block;min-width:${Math.min(W,320)}px;max-height:${H}px">`;
+
+  // ── Top event (double-border rect) ──
+  s += `<rect x="${TEX}" y="${TEY}" width="${TEW}" height="${TEH}" rx="3" `
+     + `fill="white" stroke="#154775" stroke-width="2.2"/>`;
+  s += `<rect x="${TEX+3}" y="${TEY+3}" width="${TEW-6}" height="${TEH-6}" rx="1.5" `
+     + `fill="none" stroke="#154775" stroke-width="0.8"/>`;
+
+  // Top event label (up to 38 chars)
+  const lbl = sym.label.length > 38 ? sym.label.slice(0,36)+'…' : sym.label;
+  s += `<text x="${CX}" y="${TEY+TEH/2+1}" `
+     + `text-anchor="middle" dominant-baseline="middle" `
+     + `font-family="Barlow Condensed,sans-serif" font-weight="700" font-size="12" `
+     + `fill="#154775">${escSvg(lbl)}</text>`;
+
+  // ── Stem from top event to OR gate ──
+  s += `<line x1="${CX}" y1="${TEY+TEH}" x2="${CX}" y2="${GY}" `
+     + `stroke="#154775" stroke-width="1.5"/>`;
+
+  // ── OR gate (shield/bullet shape) ──
+  const r = GR, gx = CX, gy = GCY;
+  s += `<path d="M${gx-r},${gy-r*0.35} `
+     + `Q${gx-r},${gy-r*1.05} ${gx},${gy-r*1.05} `
+     + `Q${gx+r},${gy-r*1.05} ${gx+r},${gy-r*0.35} `
+     + `Q${gx+r},${gy+r*0.55} ${gx},${gy+r} `
+     + `Q${gx-r},${gy+r*0.55} ${gx-r},${gy-r*0.35}Z" `
+     + `fill="#EF9F27" stroke="#8F5506" stroke-width="1.3"/>`;
+  s += `<text x="${gx}" y="${gy+1}" `
+     + `text-anchor="middle" dominant-baseline="middle" `
+     + `font-family="Space Mono,monospace" font-weight="700" font-size="8.5" `
+     + `fill="#181816">OR</text>`;
+
+  // ── Stem from OR gate down to crossbar ──
+  const gBottom = gy + r;
+  s += `<line x1="${CX}" y1="${gBottom}" x2="${CX}" y2="${CBY}" `
+     + `stroke="#154775" stroke-width="1.5"/>`;
+
+  // ── Horizontal crossbar (only when N > 1) ──
+  if(N > 1){
+    s += `<line x1="${nodeCXs[0]}" y1="${CBY}" x2="${nodeCXs[N-1]}" y2="${CBY}" `
+       + `stroke="#154775" stroke-width="1.5"/>`;
+  }
+
+  // ── Fault leaf nodes ──
+  faults.forEach((f, i) => {
+    const ncx = nodeCXs[i];
+    const nx  = ncx - NW / 2;
+    const ny  = NY;
+    const fill   = lkFill[f.lk]   || 'F6F3EE';
+    const stroke = lkStroke[f.lk] || '46453F';
+    const fid    = `fault-${sym.id}-${f.rank}`;
+
+    // Drop line crossbar → node
+    s += `<line x1="${ncx}" y1="${CBY}" x2="${ncx}" y2="${ny}" `
+       + `stroke="#154775" stroke-width="1.5"/>`;
+
+    // Clickable group
+    s += `<g onclick="scrollToFault('${fid}')" style="cursor:pointer" `
+       + `role="button" aria-label="Jump to: ${escSvg(f.name)}">`;
+
+    // Invisible tap-target padding
+    s += `<rect x="${nx-4}" y="${ny-4}" width="${NW+8}" height="${NH+8}" `
+       + `rx="28" fill="transparent"/>`;
+
+    // Node body (rounded pill)
+    s += `<rect x="${nx}" y="${ny}" width="${NW}" height="${NH}" rx="24" `
+       + `fill="#${fill}" stroke="#${stroke}" stroke-width="1.8"/>`;
+
+    // Rank circle
+    s += `<circle cx="${nx+20}" cy="${ny+NH/2}" r="13" fill="#${stroke}"/>`;
+    s += `<text x="${nx+20}" y="${ny+NH/2+1}" `
+       + `text-anchor="middle" dominant-baseline="middle" `
+       + `font-family="Space Mono,monospace" font-weight="700" font-size="9" `
+       + `fill="white">${f.rank}</text>`;
+
+    // Fault name — 2-line wrap
+    const nameLines = wrapSvgText(f.name, 17);
+    const lineSpacing = 13;
+    const textBlockH = (nameLines.length - 1) * lineSpacing;
+    const textStartY = ny + NH / 2 - textBlockH / 2;
+    nameLines.forEach((line, li) => {
+      s += `<text x="${nx + NW/2 + 6}" y="${textStartY + li * lineSpacing}" `
+         + `text-anchor="middle" dominant-baseline="middle" `
+         + `font-family="Barlow Condensed,sans-serif" font-weight="700" font-size="11.5" `
+         + `fill="#${stroke}">${escSvg(line)}</text>`;
+    });
+
+    // Likelihood tag below name
+    const lkLabel = f.lk === 'H' ? 'HIGH' : f.lk === 'M' ? 'MED' : 'LOW';
+    s += `<text x="${nx + NW/2 + 6}" y="${ny + NH - 9}" `
+       + `text-anchor="middle" dominant-baseline="middle" `
+       + `font-family="Space Mono,monospace" font-size="7.5" `
+       + `fill="#${stroke}" opacity="0.75">${lkLabel}</text>`;
+
+    s += `</g>`;
+  });
+
+  s += `</svg>`;
+  return s;
+}
+
+function scrollToFault(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.scrollIntoView({ behavior:'smooth', block:'center' });
+  el.classList.add('fta-highlight');
+  setTimeout(() => el.classList.remove('fta-highlight'), 1600);
+  if(navigator.vibrate) navigator.vibrate(8);
+}
 
 const SYMS = [
   /* ══════════════════════════════════════════
@@ -1150,8 +1341,6 @@ const SYMS = [
     id:'p3', cat:'PRESSURE', label:'Fluctuating boost pressure', chip:'BOOST HUNT', col:'#8F5506',
     hl:{pump:'amber'},
     cascade:'Unstable boost causes the EP control to receive inconsistent pilot pressure, making swashplate position hunt. This directly causes fluctuating main pressure and unstable drum speed. Diagnose and stabilise boost before chasing main circuit symptoms.',
-    recovery:aerationIdentification,
-    recovery2:airBleedProcedure,
     faults:[
       {rank:1, name:'Air ingress in suction line', lk:'H',
        measures:[
@@ -1446,8 +1635,6 @@ const SYMS = [
     id:'d3', cat:'DRIVE', label:'Jerky / unstable drum movement', chip:'TORQUE HUNT', col:'#8F5506',
     hl:{pump:'amber', m1:'amber', m2:'amber', m3:'amber', m4:'amber', drum:'amber'},
     cascade:'Jerky movement means torque delivery is intermittent — the drum accelerates and decelerates repeatedly. This is different from being merely sluggish. Check boost stability first; if boost is steady, the fault is in the swashplate control or motor circuit. Air in the system is the most common cause.',
-    recovery:aerationIdentification,
-    recovery2:airBleedProcedure,
     faults:[
       {rank:1, name:'Air in hydraulic circuit — aeration', lk:'H',
        measures:[
@@ -1632,8 +1819,6 @@ const SYMS = [
     id:'th5', cat:'THERMAL', label:'High main pressure + low boost', chip:'STARVE+LOAD', col:'#B02E28',
     hl:{pump:'red', cooler:'red', m1:'red', m2:'red', m3:'red', m4:'red'},
     cascade:'This combination is dangerous: the system is fighting a high mechanical load while the charge circuit is failing. The pump is working hard with insufficient replenishment — cavitation damage is occurring right now. STOP the drum and inspect the charge circuit before any further operation.',
-    recovery:aerationIdentification,
-    recovery2:airBleedProcedure,
     faults:[
       {rank:1, name:'Charge failure under high load — cavitation in progress', lk:'H',
        measures:[
@@ -1667,8 +1852,6 @@ const SYMS = [
     id:'n1', cat:'NOISE', label:'Unusual noise from pump', chip:'PUMP NOISE', col:'#8F5506',
     hl:{pump:'amber'},
     cascade:'Pump noise is a critical early warning signal. The SP750 is a variable axial piston pump — its noise signature changes with displacement, speed, and fluid condition. Cavitation noise is the most urgent. Mechanical noise from bearings or the gerotor indicates imminent failure.',
-    recovery:aerationIdentification,
-    recovery2:airBleedProcedure,
     faults:[
       {rank:1, name:'Cavitation — suction or boost starvation', lk:'H',
        measures:[
@@ -1973,6 +2156,33 @@ function evaluateDiagnostics() {
     </div>`;
   }
 
+  // ── Fault tree section (v7.5) ──────────────────────────────
+  const treeHeader = selected.size > 1
+    ? `FAULT TREE ANALYSIS &nbsp;·&nbsp; ${selected.size} SYMPTOMS`
+    : `FAULT TREE ANALYSIS`;
+  const treeSub = `OR gate &nbsp;·&nbsp; tap any node to jump to fault card`;
+
+  let treeInner = '';
+  selSyms.forEach((sym, ti) => {
+    if(ti > 0) treeInner += `<div class="ftree-divider"></div>`;
+    if(selected.size > 1){
+      treeInner += `<div style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--ink3);`
+                 + `letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">`
+                 + `${sym.label}</div>`;
+    }
+    treeInner += buildFaultTreeSVG(sym);
+  });
+
+  html += `<div class="ftree-outer" style="--bi:${bannerIdx++}">
+    <div class="ftree-header">
+      <span class="ftree-header-lbl">${treeHeader}</span>
+      <span class="ftree-header-sub">${treeSub}</span>
+    </div>
+    <div class="ftree-canvas">${treeInner}</div>
+    <div class="ftree-hint">⬆ Fault tree above &nbsp;·&nbsp; Fault cards below &nbsp;·&nbsp; Red = HIGH &nbsp;·&nbsp; Amber = MED &nbsp;·&nbsp; Green = LOW</div>
+  </div>`;
+
+  // ── Cascade logic boxes ──────────────────────────────────
   selSyms.forEach(sym=>{
     if(sym.cascade){
       html += `<div class="cascade-box" style="--bi:${bannerIdx++}">
@@ -1987,7 +2197,7 @@ function evaluateDiagnostics() {
     if(!rec || seenRecoveries.has(rec.title)) return;
     seenRecoveries.add(rec.title);
     html += `<div class="recovery-box" style="--bi:${bannerIdx++}">
-      <div class="rb-title">\uD83D\uDD27 ${rec.title}</div>
+      <div class="rb-title">🔧 ${rec.title}</div>
       ${rec.steps.map((s,i)=>`<div class="rb-step"><b>${i+1}.</b> ${s}</div>`).join('')}
     </div>`;
   };
@@ -2001,7 +2211,7 @@ function evaluateDiagnostics() {
       html += `<div class="section-title" style="--bi:${bannerIdx++}">▸ FAULTS FOR: ${sym.label}</div>`;
     }
     html += sym.faults.map(f=>`
-      <div class="fault-block" style="--ci:${cardIdx++}">
+      <div class="fault-block" id="fault-${sym.id}-${f.rank}" style="--ci:${cardIdx++}">
         <div class="fault-top">
           <span class="f-rank">#${f.rank}</span>
           <span class="f-name">${f.name}</span>
