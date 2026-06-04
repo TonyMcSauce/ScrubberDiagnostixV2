@@ -954,11 +954,158 @@ body{
   outline-offset:2px;
   transition:outline .15s;
 }
+/* ══ SYSTEM LOADER ══ */
+#sysLoader{
+  position:fixed;inset:0;z-index:9999;
+  background:#181816;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  will-change:opacity;
+  transition:opacity .55s cubic-bezier(.4,0,.2,1);
+}
+#sysLoader.loader-out{opacity:0;pointer-events:none;}
 
+.sl-scanlines{
+  position:absolute;inset:0;pointer-events:none;
+  background-image:repeating-linear-gradient(
+    to bottom,transparent 0px,transparent 3px,
+    rgba(0,0,0,.06) 3px,rgba(0,0,0,.06) 4px
+  );
+  opacity:.4;
+}
+.sl-wrap{
+  display:flex;flex-direction:column;
+  align-items:center;position:relative;
+}
+.sl-mark{width:120px;height:120px;margin-bottom:28px;}
+
+/* Ring draws itself in */
+.sl-ring{
+  stroke-dasharray:81.68;stroke-dashoffset:81.68;
+  animation:slRingDraw .72s cubic-bezier(.4,0,.2,1) .1s forwards;
+  transform-origin:50% 50%;
+}
+@keyframes slRingDraw{to{stroke-dashoffset:0;}}
+
+/* Hub ring scales in */
+.sl-hub-ring{
+  opacity:0;transform:scale(.3);
+  transform-origin:50% 50%;transform-box:fill-box;
+  animation:slHubIn .3s cubic-bezier(.34,1.56,.64,1) .82s forwards;
+}
+@keyframes slHubIn{to{opacity:1;transform:scale(1);}}
+
+/* Diagonal line slides in */
+.sl-line{
+  stroke-dasharray:20;stroke-dashoffset:20;
+  animation:slLineDraw .28s cubic-bezier(.4,0,.2,1) .86s forwards;
+}
+@keyframes slLineDraw{to{stroke-dashoffset:0;}}
+
+/* Centre dot pops + pulses red */
+.sl-dot{
+  opacity:0;transform:scale(0);
+  transform-origin:50% 50%;transform-box:fill-box;
+  animation:
+    slDotPop   .35s cubic-bezier(.34,1.9,.64,1) 1.12s forwards,
+    slDotPulse 2.2s ease-in-out 1.5s infinite;
+}
+@keyframes slDotPop  {to{opacity:1;transform:scale(1);}}
+@keyframes slDotPulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+/* App name */
+.sl-name{
+  font-family:var(--head);font-size:22px;font-weight:800;
+  letter-spacing:.14em;text-transform:uppercase;
+  color:#EF9F27;opacity:0;transform:translateY(6px);
+  animation:slNameIn .4s cubic-bezier(.4,0,.2,1) 1.08s forwards;
+  margin-bottom:4px;white-space:nowrap;
+}
+@keyframes slNameIn{to{opacity:1;transform:translateY(0);}}
+
+/* Sub label */
+.sl-sub{
+  font-family:var(--mono);font-size:9px;
+  letter-spacing:.22em;text-transform:uppercase;
+  color:#46453F;opacity:0;margin-bottom:36px;
+  animation:slFadeIn .35s ease 1.28s forwards;
+}
+@keyframes slFadeIn{to{opacity:1;}}
+
+/* Progress bar */
+.sl-progress-track{
+  width:180px;height:2px;background:#24241F;
+  position:relative;overflow:hidden;
+}
+.sl-progress-fill{
+  position:absolute;left:0;top:0;bottom:0;width:0;
+  background:#EF9F27;
+  animation:slProgSweep 1.05s cubic-bezier(.4,0,.2,1) .25s forwards;
+}
+.sl-progress-fill::after{
+  content:'';position:absolute;right:0;top:0;bottom:0;width:40px;
+  background:linear-gradient(to right,transparent,rgba(255,255,255,.35));
+}
+@keyframes slProgSweep{
+  0%  {width:0;opacity:1;}
+  80% {width:100%;opacity:1;}
+  100%{width:100%;opacity:.4;}
+}
+
+/* Status text */
+.sl-status{
+  font-family:var(--mono);font-size:8px;
+  letter-spacing:.18em;text-transform:uppercase;
+  color:#46453F;margin-top:10px;
+  opacity:0;transition:opacity .15s ease;
+  animation:slFadeIn .3s ease .6s forwards;
+}
+
+/* Site watermark */
+.sl-site{
+  position:absolute;bottom:28px;left:50%;transform:translateX(-50%);
+  font-family:var(--mono);font-size:8px;
+  letter-spacing:.2em;text-transform:uppercase;
+  color:#2E2E2A;opacity:0;white-space:nowrap;
+  animation:slFadeIn .35s ease 1.5s forwards;
+}
 </style>
 </head>
 <body>
+<div id="sysLoader">
+  <div class="sl-scanlines" aria-hidden="true"></div>
 
+  <div class="sl-wrap">
+    <!-- 120×120 logo mark -->
+    <div class="sl-mark" aria-label="ScrubberDiagnostix logo">
+      <svg viewBox="0 0 32 32" width="120" height="120"
+           xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+        <circle class="sl-ring"
+          cx="16" cy="16" r="13"
+          fill="none" stroke="#EF9F27" stroke-width="2" stroke-linecap="round"/>
+        <circle class="sl-hub-ring"
+          cx="16" cy="16" r="4"
+          fill="#181816" stroke="#EF9F27" stroke-width="1.8"/>
+        <line class="sl-line"
+          x1="9" y1="23" x2="23" y2="9"
+          stroke="#EF9F27" stroke-width="2.5" stroke-linecap="round"/>
+        <circle class="sl-dot"
+          cx="16" cy="16" r="1.8" fill="#B02E28"/>
+      </svg>
+    </div>
+
+    <div class="sl-name">ScrubberDiagnostix</div>
+    <div class="sl-sub">v8 &nbsp;·&nbsp; Hydraulic Diagnostics</div>
+
+    <div class="sl-progress-track" role="progressbar" aria-label="Loading">
+      <div class="sl-progress-fill"></div>
+    </div>
+    <div class="sl-status" id="slStatus">Initialising systems…</div>
+  </div>
+
+  <div class="sl-site">Debswana Jwaneng Mine · SP750 · CA 100-100</div>
+</div>
+<!-- ══ End #sysLoader ══ -->
 <div class="install-bar" id="installBar">
   <span class="install-bar-txt">📲 Install ScrubberDx for offline use</span>
   <button onclick="doInstall()" id="installBtn">INSTALL</button>
@@ -2258,6 +2405,38 @@ function evaluateDiagnostics() {
   // 7. Smooth scroll to top
   da.scrollTo({top:0, behavior:'smooth'});
 }
+</script>
+<script>
+/* ── Loader status text cycling ── */
+(function(){
+  const msgs = [
+    'Initialising systems\u2026',
+    'Loading fault database\u2026',
+    'SP750 \u00b7 CA\u00a0100-100 ready',
+  ];
+  let i = 0;
+  const el = document.getElementById('slStatus');
+  const t = setInterval(() => {
+    i++;
+    if (i < msgs.length && el) {
+      el.style.opacity = '0';
+      setTimeout(() => { el.textContent = msgs[i]; el.style.opacity = '1'; }, 150);
+    } else {
+      clearInterval(t);
+    }
+  }, 420);
+})();
+
+/* ── Dismiss once page is fully loaded ── */
+window.addEventListener('load', () => {
+  const loader = document.getElementById('sysLoader');
+  if (!loader) return;
+  /* 1200ms minimum so the full animation always plays */
+  setTimeout(() => {
+    loader.classList.add('loader-out');
+    loader.addEventListener('transitionend', () => loader.remove(), { once: true });
+  }, 1200);
+});
 </script>
 
 <script>
