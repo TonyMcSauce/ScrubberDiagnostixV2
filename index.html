@@ -1027,6 +1027,326 @@ body{
   transition:outline .15s;
 }
 
+/* ══ CONFLICT MODAL ══ */
+#conflictModal{
+  position:fixed;inset:0;z-index:7500;
+  display:none;align-items:center;justify-content:center;
+  padding:16px;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .22s ease;
+}
+#conflictModal.cf-vis{
+  opacity:1;
+  pointer-events:all;
+}
+.cf-backdrop{
+  position:absolute;inset:0;
+  background:rgba(24,24,22,.72);
+  backdrop-filter:blur(2px);
+  -webkit-backdrop-filter:blur(2px);
+}
+.cf-card{
+  position:relative;z-index:1;
+  width:min(480px,96vw);
+  background:var(--surface);
+  border:2px solid var(--bdr);
+  box-shadow:0 12px 56px rgba(0,0,0,.36);
+  transform:scale(.93) translateY(8px);
+  transition:transform .28s cubic-bezier(.16,1,.3,1);
+  overflow:hidden;
+}
+#conflictModal.cf-vis .cf-card{transform:scale(1) translateY(0);}
+.cf-stripe{
+  height:4px;
+  background:repeating-linear-gradient(
+    90deg,
+    var(--amber-mid) 0px, var(--amber-mid) 12px,
+    transparent 12px, transparent 18px
+  );
+}
+.cf-stripe.hard{background:repeating-linear-gradient(
+    90deg,
+    var(--red-mid) 0px, var(--red-mid) 12px,
+    transparent 12px, transparent 18px
+  );}
+.cf-body{padding:20px 22px 22px;}
+.cf-eyebrow{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  margin-bottom:8px;
+}
+.cf-eyebrow.hard{color:var(--red);}
+.cf-eyebrow.soft{color:var(--amber);}
+.cf-title{
+  font-family:var(--head);
+  font-size:var(--fs-lg);
+  font-weight:800;
+  letter-spacing:.06em;
+  color:var(--ink);
+  margin-bottom:10px;
+  line-height:1.2;
+}
+.cf-pairs{
+  display:flex;flex-direction:column;gap:7px;
+  margin-bottom:14px;
+}
+.cf-pair{
+  padding:10px 12px;
+  background:var(--bg);
+  border:1px solid var(--blight);
+  border-left:3px solid var(--blight);
+}
+.cf-pair.hard{border-left-color:var(--red-mid);}
+.cf-pair.soft{border-left-color:var(--amber-mid);}
+.cf-pair-reason{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  color:var(--ink2);
+  line-height:1.65;
+  letter-spacing:.02em;
+}
+.cf-pair-labels{
+  display:flex;gap:6px;flex-wrap:wrap;
+  margin-bottom:5px;
+}
+.cf-chip{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  letter-spacing:.1em;
+  padding:2px 7px;
+  background:var(--blight);
+  color:var(--ink2);
+  font-weight:700;
+}
+.cf-gauge-note{
+  display:flex;gap:8px;align-items:flex-start;
+  margin-top:12px;margin-bottom:14px;
+  padding:10px 12px;
+  background:#FEFBF3;
+  border:1px solid #E8C97A;
+  border-left:3px solid var(--amber-mid);
+}
+.cf-gauge-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.cf-gauge-txt{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  color:#7A6020;
+  line-height:1.65;
+  letter-spacing:.02em;
+}
+.cf-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.cf-btn{
+  height:42px;
+  padding:0 18px;
+  font-family:var(--head);
+  font-size:var(--fs-sm);
+  font-weight:800;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  cursor:pointer;
+  border:1.5px solid var(--bdr);
+  background:none;
+  color:var(--ink);
+  transition:background .12s, border-color .12s, color .12s;
+}
+.cf-btn:hover{background:var(--blight);}
+.cf-btn.primary{
+  background:var(--ink);
+  color:#fff;
+  border-color:var(--ink);
+  flex:1;
+}
+.cf-btn.primary:hover{background:#333;}
+
+/* ══ POST-FIX FEEDBACK MODAL ══ */
+#feedbackModal{
+  position:fixed;inset:0;z-index:8200;
+  display:none;align-items:center;justify-content:center;
+  padding:16px;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .22s ease;
+}
+#feedbackModal.fm-vis{
+  opacity:1;
+  pointer-events:all;
+}
+.fm-backdrop{
+  position:absolute;inset:0;
+  background:rgba(24,24,22,.72);
+  backdrop-filter:blur(2px);
+  -webkit-backdrop-filter:blur(2px);
+}
+.fm-card{
+  position:relative;z-index:1;
+  width:min(480px,96vw);
+  background:var(--surface);
+  border:2px solid var(--bdr);
+  box-shadow:0 12px 56px rgba(0,0,0,.36);
+  transform:scale(.93) translateY(8px);
+  transition:transform .28s cubic-bezier(.16,1,.3,1);
+  overflow:hidden;
+}
+#feedbackModal.fm-vis .fm-card{transform:scale(1) translateY(0);}
+.fm-top{
+  background:var(--ink);
+  padding:14px 18px;
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+}
+.fm-top-title{
+  font-family:var(--head);
+  font-size:var(--fs-md);
+  font-weight:800;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:#fff;
+  line-height:1;
+}
+.fm-top-sub{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  color:#666;
+  margin-top:4px;
+  letter-spacing:.05em;
+}
+.fm-x{
+  background:none;border:1.5px solid #333;
+  width:28px;height:28px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:12px;color:#888;
+  font-family:var(--mono);
+  transition:border-color .12s,color .12s;
+}
+.fm-x:hover{border-color:#666;color:#ccc;}
+.fm-body{padding:18px;}
+.fm-q{
+  font-family:var(--mono);
+  font-size:var(--fs-sm);
+  color:var(--ink2);
+  margin-bottom:12px;
+  letter-spacing:.02em;
+  line-height:1.65;
+}
+.fm-choices{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:0;}
+.fb-choice{
+  padding:9px 16px;
+  border:1.5px solid var(--blight);
+  background:none;
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  letter-spacing:.08em;
+  cursor:pointer;
+  color:var(--ink2);
+  text-transform:uppercase;
+  transition:all .12s;
+  white-space:nowrap;
+}
+.fb-choice:hover{border-color:var(--bdr);color:var(--ink);}
+.fb-choice.sel-yes{background:#E8F5E9;border-color:#4CAF50;color:#2E7D32;}
+.fb-choice.sel-partial{background:var(--amber-bg);border-color:var(--amber-mid);color:var(--amber);}
+.fb-choice.sel-no{background:var(--red-bg);border-color:var(--red-mid);color:var(--red);}
+/* Step 2: which solution worked */
+.fm-step2{
+  max-height:0;overflow:hidden;
+  transition:max-height .3s cubic-bezier(.4,0,.2,1);
+  margin-top:0;
+}
+.fm-step2.open{max-height:340px;margin-top:14px;}
+.fm-step2-label{
+  font-family:var(--mono);
+  font-size:var(--fs-xs);
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--ink3);
+  margin-bottom:6px;
+}
+.fm-sol-list{
+  display:flex;flex-direction:column;gap:5px;
+  margin-bottom:10px;
+}
+.fm-sol-item{
+  display:flex;align-items:flex-start;gap:8px;
+  padding:8px 10px;
+  border:1.5px solid var(--blight);
+  background:var(--bg);
+  cursor:pointer;
+  transition:border-color .12s, background .12s;
+}
+.fm-sol-item:hover{border-color:var(--bdr);}
+.fm-sol-item.selected{border-color:var(--amber-mid);background:var(--amber-bg);}
+.fm-sol-radio{
+  width:14px;height:14px;flex-shrink:0;
+  border:1.5px solid var(--blight);
+  border-radius:50%;
+  margin-top:1px;
+  display:flex;align-items:center;justify-content:center;
+  transition:border-color .12s;
+}
+.fm-sol-item.selected .fm-sol-radio{border-color:var(--amber-mid);}
+.fm-sol-radio::after{
+  content:'';width:6px;height:6px;border-radius:50%;
+  background:var(--amber-mid);
+  opacity:0;transition:opacity .12s;
+}
+.fm-sol-item.selected .fm-sol-radio::after{opacity:1;}
+.fm-sol-txt{
+  font-family:var(--mono);font-size:var(--fs-xs);
+  color:var(--ink2);line-height:1.55;
+  letter-spacing:.02em;
+}
+/* Step 3: other solution text */
+.fm-step3{
+  max-height:0;overflow:hidden;
+  transition:max-height .28s cubic-bezier(.4,0,.2,1);
+}
+.fm-step3.open{max-height:200px;margin-top:10px;}
+.fb-sol-input{
+  width:100%;height:68px;
+  padding:8px 10px;
+  background:var(--surface);
+  border:1.5px solid var(--blight);
+  font-family:var(--mono);
+  font-size:var(--fs-sm);
+  color:var(--ink);
+  resize:none;outline:none;
+  letter-spacing:.02em;line-height:1.6;
+  transition:border-color .12s;
+  -webkit-appearance:none;
+}
+.fb-sol-input:focus{border-color:var(--amber-mid);}
+.fb-sol-input::placeholder{color:var(--ink3);opacity:.7;}
+.fm-actions{
+  display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;
+}
+.fb-submit{
+  flex:1;height:40px;padding:0 16px;
+  background:var(--ink);color:#fff;border:none;
+  font-family:var(--head);font-size:var(--fs-xs);
+  font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  cursor:pointer;transition:background .12s;
+  min-width:140px;
+}
+.fb-submit:hover{background:#333;}
+.fm-skip{
+  height:40px;padding:0 14px;
+  background:none;border:1.5px solid var(--blight);
+  font-family:var(--mono);font-size:var(--fs-xs);
+  letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink3);cursor:pointer;
+  transition:border-color .12s,color .12s;
+}
+.fm-skip:hover{border-color:var(--bdr);color:var(--ink2);}
+.fb-thanks{
+  padding:12px 14px;margin-top:14px;
+  background:#E8F5E9;border:1px solid #4CAF50;
+  font-family:var(--mono);font-size:var(--fs-xs);
+  color:#2E7D32;letter-spacing:.04em;line-height:1.6;
+  display:none;
+}
+.fb-thanks.show{display:block;}
 /* ══ DIAG RUN LOADER ══ */
 #diagLoader{
   display:flex;flex-direction:column;
@@ -1530,6 +1850,73 @@ body{
   <span class="ut-label">NEW VERSION AVAILABLE</span>
   <button class="ut-btn" onclick="applyUpdate()">UPDATE NOW</button>
   <button class="ut-close" onclick="dismissUpdate()" title="Dismiss">✕</button>
+</div>
+
+<!-- ══ CONFLICT MODAL ══ -->
+<div id="conflictModal" role="dialog" aria-modal="true" aria-label="Conflicting symptoms detected">
+  <div class="cf-backdrop" onclick="closeConflict()"></div>
+  <div class="cf-card">
+    <div class="cf-stripe" id="cfStripe"></div>
+    <div class="cf-body">
+      <div class="cf-eyebrow" id="cfEyebrow"></div>
+      <div class="cf-title" id="cfTitle"></div>
+      <div class="cf-pairs" id="cfPairs"></div>
+      <div class="cf-gauge-note" id="cfGaugeNote" style="display:none">
+        <div class="cf-gauge-icon">⚠</div>
+        <div class="cf-gauge-txt">
+          <strong>Faulty gauge?</strong> Conflicting pressure readings can also result from a defective or stuck gauge rather than a true system contradiction. Before changing your selection, verify readings with a calibrated test gauge at the relevant port.
+        </div>
+      </div>
+      <div class="cf-actions">
+        <button class="cf-btn" onclick="closeConflict()">REVIEW SYMPTOMS</button>
+        <button class="cf-btn primary" id="cfRunAnyway" onclick="closeConflictAndRun()">RUN ANYWAY</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ POST-FIX FEEDBACK MODAL ══ -->
+<div id="feedbackModal" role="dialog" aria-modal="true" aria-label="Fault resolution feedback">
+  <div class="fm-backdrop" onclick="closeFeedback()"></div>
+  <div class="fm-card">
+    <div class="fm-top">
+      <div>
+        <div class="fm-top-title">Did it work?</div>
+        <div class="fm-top-sub" id="fmSub">Fault resolution feedback</div>
+      </div>
+      <button class="fm-x" onclick="closeFeedback()" aria-label="Close">✕</button>
+    </div>
+    <div class="fm-body">
+      <div class="fm-q">Your response improves diagnostic accuracy for the whole team.</div>
+      <div class="fm-choices">
+        <button class="fb-choice" id="fb-yes"     onclick="fbSelect('yes')">✓ Fixed it</button>
+        <button class="fb-choice" id="fb-partial" onclick="fbSelect('partial')">~ Partially</button>
+        <button class="fb-choice" id="fb-no"      onclick="fbSelect('no')">✕ Different solution</button>
+      </div>
+
+      <!-- Step 2: which solution worked (yes / partial) -->
+      <div class="fm-step2" id="fmStep2">
+        <div class="fm-step2-label" id="fmStep2Label">Which solution worked?</div>
+        <div class="fm-sol-list" id="fmSolList"></div>
+        <div class="fm-actions">
+          <button class="fb-submit" onclick="fbSubmitFixed()">SUBMIT FEEDBACK</button>
+          <button class="fm-skip"   onclick="closeFeedback()">SKIP</button>
+        </div>
+      </div>
+
+      <!-- Step 3: other solution (no) -->
+      <div class="fm-step3" id="fmStep3">
+        <div class="fm-step2-label">What actually fixed it?</div>
+        <textarea class="fb-sol-input" id="fbSolText" placeholder="Describe what you found and what resolved the fault…" rows="3"></textarea>
+        <div class="fm-actions">
+          <button class="fb-submit" onclick="fbSubmitNew()">SEND TO DEVELOPER</button>
+          <button class="fm-skip"   onclick="closeFeedback()">SKIP</button>
+        </div>
+      </div>
+
+      <div class="fb-thanks" id="fbThanks">Thanks — your feedback has been noted and will be reviewed for the next update.</div>
+    </div>
+  </div>
 </div>
 
 <!-- ══ ONBOARDING BANNER (first visit only) ══ -->
@@ -2440,7 +2827,7 @@ const SYMS = [
     id:'d2', cat:'DRIVE', label:'Drum sluggish / low speed', chip:'SPEED LOSS', col:'#8F5506',
     hl:{pump:'amber', m1:'amber', m2:'amber', m3:'amber', m4:'amber'},
     recovery:{
-      title:'MANUAL DRUM JOG PROCEDURE — SLUGGISH / OVERLOADED DRUM',
+      title:'MANUAL DRUM JOG RECOVERY — OVERLOADED FEED',
       steps:[
         'Confirm pressure IS present at MA/MB before attempting manual control',
         'If drum is moving but very slowly, assess whether overloaded feed is the cause before jogging',
@@ -3102,6 +3489,17 @@ function getEmptyMessage(){
 }
 
 function clearAll(){
+  // If results are showing, open feedback modal before clearing
+  const da = document.getElementById('diagArea');
+  const hasResults = da && da.querySelector('.fault-block, .cascade-box, .multi-banner');
+  if(hasResults){
+    openFeedback();
+    return;
+  }
+  _doClearAll();
+}
+
+function _doClearAll(){
   selected.clear();
   buildSymList();
   updateNodes();
@@ -3120,71 +3518,22 @@ function clearAll(){
 function evaluateDiagnostics() {
   if(selected.size === 0) return;
 
-  // Button shimmer feedback
   const btn = document.getElementById('calcBtn');
   if(btn){ btn.classList.add('running'); btn.addEventListener('animationend',()=>btn.classList.remove('running'),{once:true}); }
-
-  // Haptic: firm press
   haptic(15);
-
-  // 1. Node highlights with pulse
   updateNodes();
 
-  // On mobile: close the drawer first, then show loader once it has cleared (260ms close anim)
+  // Run conflict detection — show modal if conflicts found
+  const {hard, soft} = detectConflicts(selected);
+  if(hard.length > 0 || soft.length > 0){
+    _showConflictModal(hard, soft);
+    return;
+  }
+
+  // No conflicts — proceed to loader
   const isMobile = window.innerWidth <= 700;
-  const drawerDelay = isMobile ? 300 : 0;
   if(isMobile){ closeDrawer(); }
-
-  setTimeout(() => {
-    // 2. Show inline diag loader in the results window (always visible now — drawer is gone on mobile)
-    const da = document.getElementById('diagArea');
-    da.innerHTML = `
-      <div id="diagLoader">
-        <div class="dl-icon" aria-label="Analysing">
-          <svg viewBox="0 0 56 56" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
-            <g class="dl-ring-spin">
-              <circle cx="28" cy="28" r="24"
-                fill="none" stroke="#24241F" stroke-width="2"
-                stroke-dasharray="6 4" stroke-linecap="round"/>
-            </g>
-            <circle class="dl-arc"
-              cx="28" cy="28" r="20"
-              fill="none" stroke="#EF9F27" stroke-width="2.5" stroke-linecap="round"/>
-            <g class="dl-inner">
-              <circle class="dl-hub"
-                cx="28" cy="28" r="7"
-                fill="#181816" stroke="#EF9F27" stroke-width="2"/>
-              <line class="dl-line"
-                x1="16" y1="40" x2="40" y2="16"
-                stroke="#EF9F27" stroke-width="3" stroke-linecap="round"/>
-              <circle class="dl-dot"
-                cx="28" cy="28" r="3" fill="#B02E28"/>
-            </g>
-          </svg>
-        </div>
-        <div class="dl-bar-wrap"><div class="dl-bar-fill"></div></div>
-        <div class="dl-label" id="dlLabel">Compiling fault profile…</div>
-      </div>`;
-
-    // Cycle loader label text
-    const dlMsgs = ['Compiling fault profile…','Cross-referencing faults…','Building fault tree…','Staging action steps…'];
-    let dlIdx = 0;
-    const dlInterval = setInterval(()=>{
-      dlIdx++;
-      const el = document.getElementById('dlLabel');
-      if(el && dlIdx < dlMsgs.length){
-        el.style.opacity='0';
-        setTimeout(()=>{ if(el){ el.textContent=dlMsgs[dlIdx]; el.style.opacity='1'; } },120);
-      }
-    }, 240);
-
-    // After animation plays, build and inject results
-    setTimeout(()=>{
-      clearInterval(dlInterval);
-      _buildDiagResults();
-    }, 980);
-
-  }, drawerDelay);
+  setTimeout(()=>{ _buildDiagLoader(); }, isMobile ? 300 : 0);
 }
 
 function _buildDiagResults() {
@@ -3277,6 +3626,21 @@ function _buildDiagResults() {
       </div>`).join('');
     if(selected.size>1 && idx<selSyms.length-1) html += `<div class="sym-divider"></div>`;
   });
+
+  // Build fault list for feedback modal solution picker
+  const allFaults = [];
+  selSyms.forEach(sym=>{
+    (sym.faults||[]).forEach(f=>{
+      if(!allFaults.find(x=>x.name===f.name)){
+        allFaults.push({rank:f.rank, name:f.name, symLabel:sym.label});
+      }
+    });
+  });
+  allFaults.sort((a,b)=>a.rank-b.rank);
+  const topFaultName = allFaults.length > 0 ? allFaults[0].name : '';
+  _storeFeedbackContext([...selected], topFaultName, allFaults);
+
+  // No inline strip — feedback is a modal triggered by clearAll
 
   // 3. Inject HTML
   const da = document.getElementById('diagArea');
@@ -3553,6 +3917,8 @@ function closeContact(){
 document.addEventListener('keydown', e=>{
   if(e.key === 'Escape'){
     closeContact();
+    closeFeedback();
+    closeConflict();
     const banner = document.getElementById('onboardBanner');
     if(banner && banner.classList.contains('ob-vis')) dismissOnboard();
   }
@@ -3563,6 +3929,389 @@ function showHelp(){
   if(!banner) return;
   banner.style.display = '';
   requestAnimationFrame(()=>{ banner.classList.add('ob-vis'); });
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   CONFLICT DETECTION ENGINE
+   Each symptom is tagged with semantic axes. The engine infers
+   conflicts by finding axis values that cannot coexist.
+══════════════════════════════════════════════════════════════════ */
+const SYM_AXES = {
+  // boost axis:  absent | low | normal | high
+  p0: { boost:'absent',  main:'absent'  },
+  p1: { boost:'normal',  main:'absent'  },
+  p2: { boost:'low',     main:'low'     },
+  p3: { boost:'unstable'               },
+  p4: {                  main:'unstable'},
+  p5: { boost:'high'                   },
+  p6: {                  main:'high'    },
+  p7: { boost:'unstable',main:'unstable'},
+  p8: { boost:'unstable',main:'unstable'},
+  th5:{ boost:'low',     main:'high'    },
+  th6:{ boost:'low'                    },
+  // drum axis: stopped | slow | running-unstable
+  d1: { drum:'stopped'  },
+  d2: { drum:'slow'     },
+  d3: { drum:'running-unstable'},
+  // temp axis: pump-hot | system-hot | motor-hot
+  th1:{ temp_pump:'hot' },
+  th2:{ temp_sys:'hot'  },
+  th3:{ temp_motor:'hot'},
+  th4:{ temp_side:'imbalanced'},
+  th7:{ temp_motor:'outlier'},
+};
+
+// Mutually exclusive value pairs per axis
+const EXCLUSIVE = {
+  boost: [['absent','normal'],['absent','high'],['low','high'],['normal','high']],
+  main:  [['absent','high'],['absent','normal']],
+  drum:  [['stopped','slow'],['stopped','running-unstable']],
+};
+
+// Axis conflicts that warrant a faulty-gauge reminder
+const GAUGE_AXES = new Set(['boost','main']);
+
+function detectConflicts(selIds){
+  const hard = [];
+  const soft = [];
+  const ids = [...selIds];
+
+  // Build axis→{value,symId} map across all selected symptoms
+  const axisMap = {};
+  ids.forEach(id=>{
+    const axes = SYM_AXES[id];
+    if(!axes) return;
+    Object.entries(axes).forEach(([axis, val])=>{
+      if(!axisMap[axis]) axisMap[axis] = [];
+      axisMap[axis].push({val, id});
+    });
+  });
+
+  // Check each axis for exclusive value pairs
+  Object.entries(axisMap).forEach(([axis, entries])=>{
+    if(entries.length < 2) return;
+    const excl = EXCLUSIVE[axis] || [];
+    for(let i=0;i<entries.length;i++){
+      for(let j=i+1;j<entries.length;j++){
+        const a = entries[i], b = entries[j];
+        const isExclusive = excl.some(([x,y])=>
+          (a.val===x && b.val===y)||(a.val===y && b.val===x)
+        );
+        if(isExclusive){
+          hard.push({axis, a, b, isGauge: GAUGE_AXES.has(axis)});
+        } else if(a.val !== b.val && a.val !== 'unstable' && b.val !== 'unstable'){
+          // Different non-unstable values on the same axis = soft conflict
+          soft.push({axis, a, b, isGauge: GAUGE_AXES.has(axis)});
+        }
+      }
+    }
+  });
+
+  // De-duplicate: if same pair appears in hard, remove from soft
+  const hardPairs = new Set(hard.map(c=>[c.a.id,c.b.id].sort().join('+')));
+  const filteredSoft = soft.filter(c=> !hardPairs.has([c.a.id,c.b.id].sort().join('+')));
+
+  return {hard, soft: filteredSoft};
+}
+
+function symLabel(id){
+  const s = SYMS.find(x=>x.id===id);
+  return s ? s.label : id;
+}
+
+function axisName(axis){
+  const map = {boost:'Boost pressure',main:'Main pressure',drum:'Drum state',
+    temp_pump:'Pump temperature',temp_sys:'System temperature',
+    temp_motor:'Motor temperature',temp_side:'Thermal balance'};
+  return map[axis] || axis;
+}
+
+// State: pending run after conflict modal
+let _pendingRun = false;
+
+function closeConflict(){
+  const m = document.getElementById('conflictModal');
+  if(!m) return;
+  m.classList.remove('cf-vis');
+  setTimeout(()=>{ m.style.display='none'; _pendingRun=false; }, 260);
+}
+
+function closeConflictAndRun(){
+  closeConflict();
+  const isMobile = window.innerWidth <= 700;
+  if(isMobile){ closeDrawer(); }
+  setTimeout(()=>{ _buildDiagLoader(); }, isMobile ? 580 : 280);
+}
+
+function evaluateDiagnostics() {
+  if(selected.size === 0) return;
+
+  const btn = document.getElementById('calcBtn');
+  if(btn){ btn.classList.add('running'); btn.addEventListener('animationend',()=>btn.classList.remove('running'),{once:true}); }
+  haptic(15);
+  updateNodes();
+
+  // ── Run conflict detection ──
+  const {hard, soft} = detectConflicts(selected);
+
+  if(hard.length > 0 || soft.length > 0){
+    _showConflictModal(hard, soft);
+    return;
+  }
+
+  // No conflicts — proceed normally
+  const isMobile = window.innerWidth <= 700;
+  if(isMobile){ closeDrawer(); }
+  setTimeout(()=>{ _buildDiagLoader(); }, isMobile ? 300 : 0);
+}
+
+function _showConflictModal(hard, soft){
+  const m = document.getElementById('conflictModal');
+  const stripe = document.getElementById('cfStripe');
+  const eyebrow = document.getElementById('cfEyebrow');
+  const title = document.getElementById('cfTitle');
+  const pairs = document.getElementById('cfPairs');
+  const gaugeNote = document.getElementById('cfGaugeNote');
+
+  const isHard = hard.length > 0;
+  stripe.className = 'cf-stripe' + (isHard ? ' hard' : '');
+  eyebrow.className = 'cf-eyebrow' + (isHard ? ' hard' : ' soft');
+  eyebrow.textContent = isHard ? 'CONFLICTING SYMPTOMS DETECTED' : 'UNUSUAL COMBINATION DETECTED';
+  title.textContent = isHard
+    ? 'These symptoms physically contradict each other.'
+    : 'This combination is uncommon — confirm your readings.';
+
+  let pairHTML = '';
+  let needsGauge = false;
+
+  [...hard,...soft].forEach(c=>{
+    const type = hard.includes(c) ? 'hard' : 'soft';
+    if(c.isGauge) needsGauge = true;
+    pairHTML += `
+      <div class="cf-pair ${type}">
+        <div class="cf-pair-labels">
+          <span class="cf-chip">${symLabel(c.a.id)}</span>
+          <span style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--ink3);align-self:center;">vs</span>
+          <span class="cf-chip">${symLabel(c.b.id)}</span>
+        </div>
+        <div class="cf-pair-reason">${_conflictReason(c, type)}</div>
+      </div>`;
+  });
+
+  pairs.innerHTML = pairHTML;
+  gaugeNote.style.display = needsGauge ? 'flex' : 'none';
+
+  m.style.display = 'flex';
+  requestAnimationFrame(()=>{ m.classList.add('cf-vis'); });
+}
+
+function _conflictReason(c, type){
+  const axis = c.axis;
+  const aLabel = symLabel(c.a.id);
+  const bLabel = symLabel(c.b.id);
+
+  if(axis === 'boost'){
+    if(type==='hard') return `"${aLabel}" reports boost as <strong>${c.a.val}</strong>, but "${bLabel}" assumes boost is <strong>${c.b.val}</strong>. The boost circuit cannot be in both states simultaneously.`;
+    return `Both symptoms describe different boost states. Verify your boost reading at port MK4 before proceeding.`;
+  }
+  if(axis === 'main'){
+    if(type==='hard') return `"${aLabel}" implies main pressure is <strong>${c.a.val}</strong>, while "${bLabel}" implies it is <strong>${c.b.val}</strong>. These are mutually exclusive circuit states.`;
+    return `Both symptoms describe different main pressure states. Confirm readings at MA/MB before running.`;
+  }
+  if(axis === 'drum'){
+    if(type==='hard') return `"${aLabel}" describes the drum as <strong>${c.a.val}</strong> while "${bLabel}" describes it as <strong>${c.b.val}</strong>. A drum cannot be stopped and moving at the same time.`;
+    return `These describe different drum motion states. Confirm whether the drum is rotating before selecting both.`;
+  }
+  return `"${aLabel}" and "${bLabel}" report conflicting <strong>${axisName(axis)}</strong> states — verify your reading before running diagnosis.`;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   DIAG LOADER (extracted so it can be called from conflict bypass)
+══════════════════════════════════════════════════════════════════ */
+function _buildDiagLoader(){
+  const da = document.getElementById('diagArea');
+  da.innerHTML = `
+    <div id="diagLoader">
+      <div class="dl-icon" aria-label="Analysing">
+        <svg viewBox="0 0 56 56" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+          <g class="dl-ring-spin">
+            <circle cx="28" cy="28" r="24" fill="none" stroke="#24241F" stroke-width="2" stroke-dasharray="6 4" stroke-linecap="round"/>
+          </g>
+          <circle class="dl-arc" cx="28" cy="28" r="20" fill="none" stroke="#EF9F27" stroke-width="2.5" stroke-linecap="round"/>
+          <g class="dl-inner">
+            <circle class="dl-hub" cx="28" cy="28" r="7" fill="#181816" stroke="#EF9F27" stroke-width="2"/>
+            <line class="dl-line" x1="16" y1="40" x2="40" y2="16" stroke="#EF9F27" stroke-width="3" stroke-linecap="round"/>
+            <circle class="dl-dot" cx="28" cy="28" r="3" fill="#B02E28"/>
+          </g>
+        </svg>
+      </div>
+      <div class="dl-bar-wrap"><div class="dl-bar-fill"></div></div>
+      <div class="dl-label" id="dlLabel">Compiling fault profile…</div>
+    </div>`;
+
+  const dlMsgs = ['Compiling fault profile…','Cross-referencing faults…','Building fault tree…','Staging action steps…'];
+  let dlIdx = 0;
+  const dlInterval = setInterval(()=>{
+    dlIdx++;
+    const el = document.getElementById('dlLabel');
+    if(el && dlIdx < dlMsgs.length){
+      el.style.opacity='0';
+      setTimeout(()=>{ if(el){ el.textContent=dlMsgs[dlIdx]; el.style.opacity='1'; } },120);
+    }
+  }, 240);
+
+  setTimeout(()=>{ clearInterval(dlInterval); _buildDiagResults(); }, 980);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   POST-FIX FEEDBACK MODAL
+══════════════════════════════════════════════════════════════════ */
+let _lastDiagSymIds  = [];
+let _lastTopFault    = '';
+let _lastFaultList   = []; // all ranked fault names for the "which one worked" list
+
+function _storeFeedbackContext(symIds, topFault, faultList){
+  _lastDiagSymIds = symIds;
+  _lastTopFault   = topFault;
+  _lastFaultList  = faultList;
+}
+
+function _buildFeedbackStrip(symIds, topFault){ return ''; } // no-op strip (modal handles it)
+
+function openFeedback(){
+  // Reset modal state
+  ['yes','partial','no'].forEach(c=>{
+    const btn = document.getElementById('fb-'+c);
+    if(btn) btn.className = 'fb-choice';
+  });
+  const step2 = document.getElementById('fmStep2');
+  const step3 = document.getElementById('fmStep3');
+  const thanks = document.getElementById('fbThanks');
+  if(step2)  step2.classList.remove('open');
+  if(step3)  step3.classList.remove('open');
+  if(thanks) thanks.classList.remove('show');
+
+  // Populate subtitle with symptom names
+  const sub = document.getElementById('fmSub');
+  if(sub && _lastDiagSymIds.length){
+    const names = _lastDiagSymIds
+      .map(id=>{ const s=SYMS.find(x=>x.id===id); return s?s.chip:id; })
+      .join(' · ');
+    sub.textContent = names;
+  }
+
+  const m = document.getElementById('feedbackModal');
+  if(!m) return;
+  m.style.display = 'flex';
+  requestAnimationFrame(()=>{ m.classList.add('fm-vis'); });
+}
+
+function closeFeedback(){
+  const m = document.getElementById('feedbackModal');
+  if(!m) return;
+  m.classList.remove('fm-vis');
+  setTimeout(()=>{ m.style.display='none'; }, 260);
+  // After closing, actually do the clear
+  _doClearAll();
+}
+
+function fbSelect(choice){
+  ['yes','partial','no'].forEach(c=>{
+    const btn = document.getElementById('fb-'+c);
+    if(btn) btn.className = 'fb-choice' + (c===choice ? ' sel-'+c : '');
+  });
+
+  const step2 = document.getElementById('fmStep2');
+  const step3 = document.getElementById('fmStep3');
+  const label = document.getElementById('fmStep2Label');
+
+  if(choice === 'yes' || choice === 'partial'){
+    // Show solution picker
+    if(label) label.textContent = choice==='yes'
+      ? 'Which fault was it? (select all that apply)'
+      : 'Which solution partially helped?';
+    // Build solution list from _lastFaultList
+    const list = document.getElementById('fmSolList');
+    if(list){
+      list.innerHTML = _lastFaultList.map((f,i)=>`
+        <div class="fm-sol-item" id="fmSol-${i}" onclick="toggleSolItem(${i})">
+          <div class="fm-sol-radio"></div>
+          <div class="fm-sol-txt"><strong>Rank ${f.rank}:</strong> ${f.name}</div>
+        </div>`).join('');
+      if(_lastFaultList.length === 0){
+        list.innerHTML = '<div style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--ink3);padding:4px 0;">No ranked faults available for this session.</div>';
+      }
+    }
+    if(step2) step2.classList.add('open');
+    if(step3) step3.classList.remove('open');
+  } else {
+    // Different solution — show text area
+    if(step2) step2.classList.remove('open');
+    if(step3) step3.classList.add('open');
+  }
+}
+
+function toggleSolItem(i){
+  const el = document.getElementById('fmSol-'+i);
+  if(el) el.classList.toggle('selected');
+}
+
+function fbSubmitFixed(){
+  const selected_faults = _lastFaultList
+    .filter((f,i)=> document.getElementById('fmSol-'+i)?.classList.contains('selected'))
+    .map(f=>`Rank ${f.rank}: ${f.name}`)
+    .join('; ');
+
+  const symNames = _lastDiagSymIds
+    .map(id=>{ const s=SYMS.find(x=>x.id===id); return s?s.label:id; })
+    .join(', ');
+
+  if(selected_faults){
+    // Send a positive confirmation email so you know what's working
+    const subject = encodeURIComponent('ScrubberDiagnostix — Confirmed Fault Resolution');
+    const body = encodeURIComponent(
+      'Hello Anthony,\n\n' +
+      'A technician confirmed a successful fault resolution.\n\n' +
+      'SYMPTOMS SELECTED:\n' + symNames + '\n\n' +
+      'SOLUTION(S) THAT WORKED:\n' + selected_faults + '\n\n' +
+      '— Sent automatically from ScrubberDiagnostix'
+    );
+    window.location.href = 'mailto:amasuga@debswana.bw?subject=' + subject + '&body=' + body;
+  }
+
+  const thanks = document.getElementById('fbThanks');
+  if(thanks){ thanks.classList.add('show'); }
+  const step2 = document.getElementById('fmStep2');
+  if(step2) step2.classList.remove('open');
+  setTimeout(()=>{ closeFeedback(); }, 2200);
+}
+
+function fbSubmitNew(){
+  const sol = (document.getElementById('fbSolText')||{}).value || '';
+  if(!sol.trim()){ return; }
+
+  const symNames = _lastDiagSymIds
+    .map(id=>{ const s=SYMS.find(x=>x.id===id); return s?s.label:id; })
+    .join(', ');
+
+  const subject = encodeURIComponent('ScrubberDiagnostix — Field Solution Report');
+  const body = encodeURIComponent(
+    'Hello Anthony,\n\n' +
+    'A technician found a solution not currently in the app.\n\n' +
+    'SYMPTOMS SELECTED:\n' + symNames + '\n\n' +
+    'TOP FAULT SUGGESTED BY APP:\n' + _lastTopFault + '\n\n' +
+    'ACTUAL SOLUTION FOUND IN FIELD:\n' + sol + '\n\n' +
+    'Please consider adding this to the fault database.\n\n' +
+    '— Sent automatically from ScrubberDiagnostix'
+  );
+
+  window.location.href = 'mailto:amasuga@debswana.bw?subject=' + subject + '&body=' + body;
+
+  const thanks = document.getElementById('fbThanks');
+  if(thanks){ thanks.classList.add('show'); }
+  const step3 = document.getElementById('fmStep3');
+  if(step3) step3.classList.remove('open');
+  setTimeout(()=>{ closeFeedback(); }, 2200);
 }
 </script>
 </body>
