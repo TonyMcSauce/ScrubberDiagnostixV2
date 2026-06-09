@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="ScrubberDx"/>
 <meta name="description" content="Hydrostatic drive fault reference — SP750 pump and CA 100-100 motors"/>
-<title>ScrubberDiagnostix v7.7 — Jwaneng Mine</title>
+<title>ScrubberDiagnostix v7.6 — Jwaneng Mine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet"/>
 <style>
@@ -452,15 +452,24 @@ body{
 }
 
 .section-title{
-  font-family:var(--mono);
-  font-size:var(--fs-xs);
-  font-weight:700;
-  color:var(--ink3);
-  letter-spacing:.1em;
+  font-family:var(--head);
+  font-size:var(--fs-base);
+  font-weight:800;
+  color:var(--ink);
+  letter-spacing:.08em;
   text-transform:uppercase;
-  margin:0 0 10px;
-  padding-bottom:6px;
-  border-bottom:1px solid var(--blight);
+  margin:0 0 12px;
+  padding-bottom:8px;
+  border-bottom:2px solid var(--bdr);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.section-title::before{
+  content:'▸';
+  color:var(--amber-mid);
+  font-size:var(--fs-md);
+  flex-shrink:0;
 }
 .sym-divider{height:2px;background:var(--blight);margin:14px 0;}
 
@@ -1828,7 +1837,7 @@ body{
     </div>
 
     <div class="sl-name">ScrubberDiagnostix</div>
-    <div class="sl-sub">v7.7 &nbsp;·&nbsp; Hydraulic Diagnostics</div>
+    <div class="sl-sub">v7.6 &nbsp;·&nbsp; Hydraulic Diagnostics</div>
 
     <div class="sl-progress-track" role="progressbar" aria-label="Loading">
       <div class="sl-progress-fill"></div>
@@ -2004,7 +2013,7 @@ body{
   </div>
   <div class="title-meta">
     <div class="t-units">BOOST: ~1200 kPa &nbsp;|&nbsp; MAIN: ~15 MPa NOM. &nbsp;|&nbsp; SWASHPLATE ≈10° OP.</div>
-    <div class="t-copy">© 2026 Anthony Masuga &nbsp;·&nbsp; v7.7</div>
+    <div class="t-copy">© 2026 Anthony Masuga &nbsp;·&nbsp; v7.6</div>
     <div style="display:flex;gap:6px;margin-top:5px;">
       <button class="t-contact-btn" style="margin-top:0;" onclick="openContact()" aria-label="Contact developer">
         <svg viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -3241,7 +3250,7 @@ const SYMS = [
     ]
   },
   /* ══════════════════════════════════════════
-     NEW v7.7 ADDITIONS
+     NEW v7.6 ADDITIONS
   ══════════════════════════════════════════ */
   {
     id:'p8', cat:'PRESSURE', label:'Boost + main both fluctuating', chip:'SYSTEM HUNT', col:'#8F5506',
@@ -3603,7 +3612,7 @@ function _buildDiagResults() {
 
   selSyms.forEach((sym,idx)=>{
     if(selected.size > 1){
-      html += `<div class="section-title" style="--bi:${bannerIdx++}">▸ FAULTS FOR: ${sym.label}</div>`;
+      html += `<div class="section-title" style="--bi:${bannerIdx++}">FAULTS FOR: ${sym.label}</div>`;
     }
     html += sym.faults.map(f=>`
       <div class="fault-block" id="fault-${sym.id}-${f.rank}" style="--ci:${cardIdx++}">
