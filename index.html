@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="ScrubberDx"/>
 <meta name="description" content="Hydrostatic drive fault reference — SP750 pump and CA 100-100 motors"/>
-<title>ScrubberDiagnostix v7.7 — Jwaneng Mine</title>
+<title>ScrubberDiagnostix v7.6 — Jwaneng Mine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet"/>
 <style>
@@ -1837,7 +1837,7 @@ body{
     </div>
 
     <div class="sl-name">ScrubberDiagnostix</div>
-    <div class="sl-sub">v7.7 &nbsp;·&nbsp; Hydraulic Diagnostics</div>
+    <div class="sl-sub">v7.6 &nbsp;·&nbsp; Hydraulic Diagnostics</div>
 
     <div class="sl-progress-track" role="progressbar" aria-label="Loading">
       <div class="sl-progress-fill"></div>
@@ -2013,7 +2013,7 @@ body{
   </div>
   <div class="title-meta">
     <div class="t-units">BOOST: ~1200 kPa &nbsp;|&nbsp; MAIN: ~15 MPa NOM. &nbsp;|&nbsp; SWASHPLATE ≈10° OP.</div>
-    <div class="t-copy">© 2026 Anthony Masuga &nbsp;·&nbsp; v7.7</div>
+    <div class="t-copy">© 2026 Anthony Masuga &nbsp;·&nbsp; v7.6</div>
     <div style="display:flex;gap:6px;margin-top:5px;">
       <button class="t-contact-btn" style="margin-top:0;" onclick="openContact()" aria-label="Contact developer">
         <svg viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -2452,17 +2452,38 @@ const SYMS = [
     hl:{pump:'red'},
     cascade:'Complete hydraulic failure. No boost means the EP control has no pilot pressure, so the swashplate cannot stroke, and main pressure cannot build. Always diagnose the boost circuit first before assuming pump failure.',
     faults:[
-      {rank:1, name:'Suction starvation / prime lost', lk:'H',
+      {rank:1, name:'Suction isolation valve closed', lk:'H',
        measures:[
-         {port:'Port S', desc:'Suction inlet pressure', val:'Min 0.8 bar abs', type:'warn'},
-         {port:'MS', desc:'Suction measuring port', val:'Check for vacuum', type:'warn'},
-         {port:'Reservoir', desc:'Oil level', val:'Check and fill if low', type:'warn'}
+         {port:'Suction valve', desc:'Physical valve position', val:'Must be fully open', type:'warn'},
+         {port:'Motor current', desc:'Running vs rated current', val:'No-load current = no pump', type:'info'},
+         {port:'MK4', desc:'Boost attempt', val:'Zero despite motor running', type:'warn'}
        ],
-       steps:['Measure at MS suction test port — below 0.8 bar absolute means inlet is starved',
-              'Check hydraulic reservoir level and fill if necessary',
-              'Inspect suction line for collapsed hose, blocked strainer, or closed isolation valve',
-              'Air ingress at suction fittings will collapse boost — check all suction-side joints']},
-      {rank:2, name:'Boost pump (gerotor) mechanical failure', lk:'H',
+       steps:['This is the single fastest check — a closed suction valve kills all pressure and looks identical to pump failure',
+              'Valve may have been left closed after maintenance, filter change, or oil top-up',
+              'Confirm fully open before any further diagnosis — takes 30 seconds and rules out the most embarrassing fault',
+              'A partially closed valve causes low pressure rather than zero — zero indicates fully closed or complete blockage']},
+      {rank:2, name:'Reservoir empty or critically low', lk:'H',
+       measures:[
+         {port:'Sight glass', desc:'Reservoir oil level', val:'Below minimum = critical', type:'warn'},
+         {port:'Suction strainer', desc:'Oil surface above strainer?', val:'Air pocket = starvation', type:'warn'}
+       ],
+       steps:['Critically low reservoir allows suction strainer to draw air — pressure drops to zero immediately',
+              'Check for recent oil loss: leaks at hose fittings, cooler, filter housings, or motor case drains',
+              'Do NOT top up with incompatible fluid — verify correct grade before adding',
+              'After topping up, prime the suction line before starting — air lock will persist otherwise',
+              'Investigate and repair the source of oil loss before returning to service']},
+      {rank:3, name:'Suction starvation / prime lost', lk:'H',
+       measures:[
+         {port:'MS', desc:'Suction measuring port', val:'>0.8 bar absolute required', type:'warn'},
+         {port:'Port S', desc:'Suction inlet condition', val:'Collapse, kink, or blockage?', type:'warn'},
+         {port:'Reservoir', desc:'Oil level confirmed OK?', val:'Rule out rank 2 first', type:'info'}
+       ],
+       steps:['Measure at MS suction test port — below 0.8 bar absolute confirms inlet starvation',
+              'Inspect suction strainer for blockage — ore fines accumulate rapidly in mine environments',
+              'Check suction hose for collapse or kinking — especially after hose replacement',
+              'Check all suction-side joint clamps for air ingress — even a pinhole collapses boost',
+              'Prime the suction circuit manually if the pump lost its oil column during a long shutdown']},
+      {rank:4, name:'Boost pump (gerotor) mechanical failure', lk:'H',
        measures:[
          {port:'ME3', desc:'Boost pump outlet pressure', val:'Should be >2000 kPa', type:'warn'},
          {port:'MK4', desc:'Charge/flushing pressure', val:'Min 2000 kPa (SP750)', type:'warn'},
@@ -2472,7 +2493,7 @@ const SYMS = [
               'If suction is confirmed OK but ME3 reads zero — gerotor has failed internally',
               'Listen for high-pitched whine or cavitation noise — characteristic of gerotor failure',
               'WARNING: if E1 and E2 are both plugged and pump runs on a test bench, charge pump WILL be destroyed']},
-      {rank:3, name:'E1/E2 filter passage blocked', lk:'H',
+      {rank:5, name:'E1/E2 filter passage fully blocked', lk:'H',
        measures:[
          {port:'E1 / E2', desc:'Filter port passage state', val:'Both plugged = ONLY sign', type:'warn'},
          {port:'ME3', desc:'Boost pressure result', val:'Collapses to near zero', type:'warn'}
@@ -2481,14 +2502,14 @@ const SYMS = [
               'This is the ONLY externally visible indicator of this fault on the SP750',
               'CRITICAL: running pump on test bench with E1/E2 plugged destroys charge pump and housing',
               'Open external filter connection or remove plugs to restore the boost flow path']},
-      {rank:4, name:'E1/E2 check valve wrong direction', lk:'M',
+      {rank:6, name:'E1/E2 check valve installed in wrong direction', lk:'M',
        measures:[
          {port:'E1', desc:'Filter supply port direction', val:'E1 → filter → E2', type:'info'},
          {port:'E2', desc:'Filter return port', val:'Return flow enters at E2', type:'info'},
          {port:'ME3', desc:'Boost with filter fitted', val:'Zero if valve reversed', type:'warn'}
        ],
        steps:['SP750 E1/E2 check valves are directional — incorrect fitting reverses flow through filter circuit',
-              'If charge filter was recently serviced or replaced, verify connection direction',
+              'Fault is introduced after filter servicing — verify direction against the service drawing',
               'E1 is the supply TO the filter; E2 is the return FROM the filter',
               'A reversed check valve blocks the entire boost flow path, collapsing both boost and main pressure']}
     ]
@@ -2496,9 +2517,32 @@ const SYMS = [
   {
     id:'p1', cat:'PRESSURE', label:'Boost OK — no main pressure', chip:'CTRL FAULT', col:'#B02E28',
     hl:{pump:'amber'},
-    cascade:'Boost circuit is healthy — pilot pressure available at ME3/MK4. But the swashplate is not producing main flow. Fault is isolated to the EP solenoid, control valve, swashplate mechanism, or the high-pressure circuit downstream.',
+    cascade:'Boost circuit is healthy — pilot pressure confirmed at ME3/MK4. Main pressure is absent. Before dismantling anything, eliminate instrument error. Then work through the control circuit, pressure relief, and main circuit in order.',
     faults:[
-      {rank:1, name:'EP solenoid not commanding displacement', lk:'H',
+      {rank:1, name:'Faulty or isolated main pressure gauge', lk:'H',
+       measures:[
+         {port:'MA / MB', desc:'Reading on installed gauge', val:'Zero — but drum may be running?', type:'warn'},
+         {port:'MA / MB', desc:'Calibrated test gauge at port', val:'Compare to installed gauge', type:'warn'},
+         {port:'Impulse hose', desc:'Blocked snubber or air lock', val:'Purge hose before comparing', type:'info'}
+       ],
+       steps:['Confirm with a calibrated test gauge directly at port MA or MB before any further action',
+              'A stuck, blocked, or air-locked gauge can read zero while the system is running perfectly',
+              'Check the gauge snubber fitting — mine dust causes snubbers to block, freezing the reading',
+              'If drum is turning and there is no other fault evidence, instrument error is the most likely cause',
+              'A gauge with a cracked bourdon tube or seized needle can also read persistently low or zero']},
+      {rank:2, name:'High-pressure relief valve stuck open or set too low', lk:'H',
+       measures:[
+         {port:'MA / MB', desc:'Main pressure at pump', val:'Builds briefly then drops to zero', type:'warn'},
+         {port:'Swashplate', desc:'Displacement indicator', val:'Stroking normally >0°', type:'info'},
+         {port:'System oil temp', desc:'Temperature rise rate', val:'Rapid rise = relief dumping', type:'warn'}
+       ],
+       steps:['Pump is stroking and boost is fine — but main pressure bleeds straight back through the relief valve',
+              'A stuck-open relief chatters audibly and causes rapid oil temperature rise — all energy becomes heat',
+              'A relief set too low (drifted spring, wrong part after service) opens immediately at target pressure',
+              'Distinguish from solenoid fault: if swashplate IS at angle but pressure still zero — relief is suspect',
+              'Check relief valve setting against commissioning record; replace or adjust as required',
+              'A wrong-specification relief valve installed after maintenance has a higher spring rate than normal']},
+      {rank:3, name:'EP solenoid not commanding displacement', lk:'H',
        measures:[
          {port:'XA or XB', desc:'Solenoid command current', val:'Target 200–600 mA', type:'warn'},
          {port:'XA or XB', desc:'Supply voltage', val:'24 V DC required', type:'info'},
@@ -2507,8 +2551,22 @@ const SYMS = [
        steps:['Check PLC/drive output current at XA or XB connector with a clamp meter',
               'Zero current = swashplate stays at neutral by design — safe-fail on power loss',
               'Measure solenoid coil resistance — nominal approx 23 Ω; open circuit means coil failed',
-              'Verify DIN 175301-803 connector is fully seated and undamaged']},
-      {rank:2, name:'EP control spool contaminated / stuck', lk:'H',
+              'Verify DIN 175301-803 connector is fully seated and undamaged',
+              'A process interlock (feed conveyor, water flow) may be holding the drive off — check PLC alarms']},
+      {rank:4, name:'Partial cavitation — worn piston slipper on main barrel', lk:'M',
+       measures:[
+         {port:'MK4', desc:'Boost confirmed stable', val:'~1200 kPa normal', type:'ok'},
+         {port:'MA / MB', desc:'Main pressure under load', val:'Low or absent under load', type:'warn'},
+         {port:'Case drain', desc:'Metallic particles in drain', val:'Bronze/steel = slipper wear', type:'warn'},
+         {port:'Pump housing', desc:'Audible crackling/grinding', val:'Acoustic cavitation signature', type:'warn'}
+       ],
+       steps:['Boost is confirmed normal — but one or more main barrel pistons are not contributing full displacement',
+              'A cracked or separated slipper pad loses its hydrostatic bearing film and cannot push against the swashplate',
+              'Symptom is low or absent main pressure under load despite normal boost and solenoid command',
+              'Inspect case drain filter for bronze/steel metallic fines — confirms internal barrel damage',
+              'Crackling or rattling from pump body under load is the characteristic acoustic signature',
+              'Partial cavitation here is distinct from gerotor cavitation — boost remains normal throughout']},
+      {rank:5, name:'EP control spool contaminated or stuck', lk:'H',
        measures:[
          {port:'ME3', desc:'Control pressure confirmed', val:'>3000 kPa present', type:'ok'},
          {port:'M1 / M2', desc:'Stroking chamber response', val:'No change despite current', type:'warn'},
@@ -2518,13 +2576,13 @@ const SYMS = [
               'SP750 sizes 500/750: pos.10 control fluid dirt filter (0.2 mm) — inspect for blockage first',
               'SP750 safety note: contaminated valve spools can permanently jam in position',
               'Flush hydraulic system; verify ISO 4406 cleanliness level is 18/16/13 or better']},
-      {rank:3, name:'High-pressure circuit fault / burst line', lk:'M',
+      {rank:6, name:'High-pressure circuit fault or burst line', lk:'M',
        measures:[
          {port:'MA or MB', desc:'Pressure at pump outlet', val:'Compare vs motor T1', type:'info'},
          {port:'T1 (motor)', desc:'Motor inlet pressure', val:'Should equal MA/MB', type:'info'}
        ],
        steps:['Confirm pump IS stroking (swashplate indicator >0°) before investigating downstream',
-              'If pump output port MA shows pressure but motor T1 reads zero — line fault confirmed',
+              'If pump output port MA shows pressure but motor T1 reads zero — line fault between pump and motor',
               'Inspect high-pressure hoses and manifold connections for leakage or burst',
               'Check isolation valves if fitted between pump and motors']}
     ]
@@ -2561,7 +2619,29 @@ const SYMS = [
        steps:['SP750 control pressure relief valve (pos.8) regulates to ~32 bar at low working pressure',
               'If it drifts low, EP control gets insufficient pilot under load conditions',
               'Test: does boost recover when scrubber load is removed from the drum?',
-              'If yes — relief valve setpoint has drifted and requires adjustment or replacement']}
+              'If yes — relief valve setpoint has drifted and requires adjustment or replacement']},
+      {rank:4, name:'Cold startup — oil viscosity too high', lk:'M',
+       measures:[
+         {port:'Reservoir', desc:'Oil temperature at startup', val:'Below 15°C = viscosity risk', type:'caut'},
+         {port:'MK4', desc:'Boost at cold start', val:'Lower than normal, recovers?', type:'caut'},
+         {port:'MA / MB', desc:'Main pressure cold vs warm', val:'Lower cold, rises with temp?', type:'info'}
+       ],
+       steps:['At Jwaneng winter mornings, cold thick oil cannot flow fast enough through the boost circuit',
+              'Both boost and main pressure read low at cold start but recover as oil warms up over 10–15 minutes',
+              'Allow adequate warm-up time before loading the drum — do not load a cold system at full feed rate',
+              'If pressures do not recover after 20 minutes running at no-load, cold startup is not the cause',
+              'Check oil grade is correct for site ambient temperature range — a heavier grade worsens cold start']},
+      {rank:5, name:'Worn main pump barrel or valve plate', lk:'M',
+       measures:[
+         {port:'MA / MB', desc:'Main pressure under load', val:'Lower than expected for load', type:'caut'},
+         {port:'MK4', desc:'Boost confirmed adequate', val:'Healthy boost baseline', type:'ok'},
+         {port:'Case drain', desc:'Drain flow rate', val:'High drain flow = bypass', type:'warn'}
+       ],
+       steps:['Progressive internal bypass across the main barrel reduces both main pressure and flow',
+              'Worn valve plate allows high-pressure oil to recirculate internally — effective displacement drops',
+              'Symptom develops gradually over months — compare current pressure readings to commissioning baseline',
+              'Elevated case drain flow is the clearest indicator of internal bypass in the main barrel',
+              'Drain oil analysis for metallic particles confirms wear is the root cause']}
     ]
   },
   {
@@ -2595,7 +2675,26 @@ const SYMS = [
        steps:['Worn gerotor loses volumetric efficiency — boost fluctuates with shaft speed variation',
               'SP750 boost pump: 143 cc/rev gerotor; replacement requires pump teardown',
               'If suction is confirmed healthy but boost still fluctuates — gerotor is the prime suspect',
-              'Document frequency and amplitude of boost fluctuation to track degradation rate']}
+              'Document frequency and amplitude of boost fluctuation to track degradation rate']},
+      {rank:4, name:'Loose or cracked suction hose clamp — intermittent air draw', lk:'M',
+       measures:[
+         {port:'MS', desc:'Suction port vacuum', val:'Occasional dips below 0.8 bar', type:'caut'},
+         {port:'Reservoir', desc:'Oil surface for bubbles', val:'Intermittent bubbling?', type:'info'}
+       ],
+       steps:['A loose clamp draws air only under suction vacuum peaks — boost dips intermittently, not continuously',
+              'Symptom is worse at higher pump speeds when suction vacuum is greatest',
+              'Inspect every suction-side clamp and fitting, including return-line submerged fittings',
+              'Tighten or replace suspect clamps; re-check boost stability after each clamp addressed']},
+      {rank:5, name:'Reservoir breather blocked — vacuum building in tank', lk:'M',
+       measures:[
+         {port:'Reservoir', desc:'Tank vacuum with level gauge', val:'Depressing with running pump?', type:'caut'},
+         {port:'Breather', desc:'Flow through breather element', val:'Blocked = suction restriction', type:'warn'}
+       ],
+       steps:['A blocked breather prevents air from replacing oil drawn out by the pump — reservoir develops vacuum',
+              'As reservoir vacuum builds, suction inlet pressure drops, causing boost to fluctuate and decay',
+              'Remove breather cap and observe if boost stabilises — confirms blocked breather',
+              'Replace or clean the breather element; mine dust is the most common cause of breather blockage',
+              'Fit a larger or dual breather element if blockage is recurrent in this environment']}
     ]
   },
   {
@@ -2630,7 +2729,29 @@ const SYMS = [
        steps:['Worn motor internals cause volumetric loss that varies with applied pressure',
               'Under high load, leakage increases and effective displacement drops — causing pressure drop',
               'Compare drain temperatures across all 4 motors; the outlier is the faulty unit',
-              'CA 100-100 specific torque: 100 Nm/bar — monitor if torque is lower than expected for given pressure']}
+              'CA 100-100 specific torque: 100 Nm/bar — monitor if torque is lower than expected for given pressure']},
+      {rank:4, name:'EP solenoid coil resistance rising with heat — thermal drift', lk:'M',
+       measures:[
+         {port:'XA / XB', desc:'Solenoid current when hot', val:'Drop vs cold current?', type:'caut'},
+         {port:'MA / MB', desc:'Pressure pattern over time', val:'Drops after ~20 min running?', type:'caut'},
+         {port:'Solenoid coil', desc:'Resistance when hot vs cold', val:'Nominal ~23 Ω cold', type:'info'}
+       ],
+       steps:['Copper coil resistance rises ~0.4%/°C — at high ambient the coil draws less current for same voltage',
+              'Characteristic pattern: main pressure normal at cold start, drops progressively after 20+ minutes running',
+              'Measure solenoid current when cold and again after 30 minutes — a significant drop confirms this fault',
+              'Fit a current-regulated drive controller to compensate for coil resistance variation with temperature',
+              'Temporary fix: improve solenoid ventilation or reduce ambient temperature at the pump enclosure']},
+      {rank:5, name:'Worn high-pressure shaft seal — intermittent bypass', lk:'M',
+       measures:[
+         {port:'MA / MB', desc:'Pressure stability', val:'Occasional unexplained drops?', type:'caut'},
+         {port:'Pump body', desc:'External leakage near shaft', val:'Weeping oil at seal area', type:'warn'},
+         {port:'Case drain', desc:'Drain flow rate', val:'Elevated = internal bypass', type:'warn'}
+       ],
+       steps:['A degraded HP shaft seal allows intermittent pressure bypass into the case drain circuit',
+              'Symptom is irregular pressure dips that do not correlate with load changes',
+              'Inspect pump body at shaft seal location for oil weeping — external sign of seal failure',
+              'Elevated case drain flow confirms internal bypass — measure against original commissioning flow rate',
+              'Shaft seal replacement requires pump removal; plan for a scheduled shutdown']}
     ]
   },
   {
@@ -2665,7 +2786,16 @@ const SYMS = [
        steps:['A blocked or highly restricted external charge filter can raise back-pressure on the E2 return side',
               'This is an unusual cause of high boost but possible when filter is severely overdue for replacement',
               'Replace filter element and verify boost drops to normal after replacement',
-              'Check E1/E2 check valve direction — incorrect fitment can create unexpected back-pressure conditions']}
+              'Check E1/E2 check valve direction — incorrect fitment can create unexpected back-pressure conditions']},
+      {rank:4, name:'Wrong boost relief valve part installed after service', lk:'M',
+       measures:[
+         {port:'ME3', desc:'Boost pressure at no-load', val:'Higher than normal setpoint', type:'warn'},
+         {port:'Relief valve', desc:'Part number verification', val:'Compare to commissioning BOM', type:'info'}
+       ],
+       steps:['A replacement relief valve with a higher spring rate holds boost above the normal setpoint',
+              'Fault introduced after maintenance — always verify part number against commissioning bill of materials',
+              'Over-boost stresses EP control spool seals and can cause premature filter blockage',
+              'Replace with correct specification valve; do not attempt to adjust a wrong-spec valve to compensate']}
     ]
   },
   {
@@ -2713,13 +2843,23 @@ const SYMS = [
               'Confirm motor connections: two opposing motors cancels all torque, pressure climbs to relief',
               'Check for severe mechanical lockup — seized bearing or jammed drum prevents any shaft movement',
               'Use the manual FWD/REV jog recovery procedure to break the load if drum is overloaded',
-              'Do NOT hold maximum pressure with a stationary drum — motor and seal damage is rapid']}
+              'Do NOT hold maximum pressure with a stationary drum — motor and seal damage is rapid']},
+      {rank:5, name:'Drum shell internal obstruction or scale build-up', lk:'M',
+       measures:[
+         {port:'MA / MB', desc:'Pressure pattern vs drum rotation', val:'Periodic spikes = internal obstruction', type:'caut'},
+         {port:'Drum', desc:'Rotation smoothness', val:'Cyclic resistance at fixed intervals?', type:'info'}
+       ],
+       steps:['Hard scale or a displaced lifter creates periodic resistance as the drum rotates — not sustained overload',
+              'Pressure spikes are cyclic and correlate with drum rotation frequency — distinguishes from feed overload',
+              'Inspect drum interior during next scheduled maintenance for build-up, broken lifters, or lodged material',
+              'Soften scale with appropriate chemical wash if build-up is the confirmed cause',
+              'A bent or detached lifter requires drum entry and mechanical repair before returning to service']}
     ]
   },
   {
     id:'p7', cat:'PRESSURE', label:'Pressure builds then collapses', chip:'COLLAPSE', col:'#B02E28',
     hl:{pump:'red', m1:'amber', m2:'amber', m3:'amber', m4:'amber'},
-    cascade:'Pressure builds normally (to ~15 MPa operating) then suddenly drops — classic charge starvation or high-pressure relief opening under sustained load. The key differentiator is whether boost also collapses simultaneously (charge issue) or whether boost holds steady while only main pressure drops (relief or motor issue).',
+    cascade:'Pressure builds normally (to ~15 MPa operating) then suddenly drops — classic charge starvation or high-pressure relief opening under sustained load. The key differentiator is whether boost also collapses simultaneously (charge issue) or whether boost holds steady while only main pressure drops (relief, thermal, or motor issue).',
     faults:[
       {rank:1, name:'Charge starvation under sustained load', lk:'H',
        measures:[
@@ -2751,7 +2891,18 @@ const SYMS = [
        steps:['A slipping drum causes periodic load release — pressure builds then drops as tyre loses grip',
               'Pressure cycle frequency will match the drum slip rate — listen and compare',
               'Inspect tyre surface condition and tyre bank geometry on both drive-end and non-drive-end',
-              'Contaminated or worn tyres lose grip under wet ore loading — clean and inspect contact surfaces']}
+              'Contaminated or worn tyres lose grip under wet ore loading — clean and inspect contact surfaces']},
+      {rank:4, name:'Thermal expansion causing relief to crack open', lk:'M',
+       measures:[
+         {port:'System oil temp', desc:'Oil temperature at collapse', val:'Elevated after long run?', type:'caut'},
+         {port:'MA / MB', desc:'Collapse pattern vs run time', val:'Only after 30+ min running?', type:'info'},
+         {port:'MK4', desc:'Boost during collapse', val:'Stable = thermal not starvation', type:'ok'}
+       ],
+       steps:['Oil expands as it heats — after prolonged running pressure gradually rises until relief cracks open',
+              'Pattern is time-dependent not load-dependent: collapse happens after a warm-up period, not at startup',
+              'Boost remains stable throughout — distinguishes from charge starvation',
+              'Check relief valve setting at normal operating temperature; adjust if setpoint is marginal',
+              'Improve oil cooling or reduce continuous run intervals if thermal expansion is recurrent']}
     ]
   },
   /* ══════════════════════════════════════════
@@ -2829,7 +2980,18 @@ const SYMS = [
               'No drum motion with normal hydraulics means fault is in mechanical torque transmission',
               'Check individual motor output shaft rotation — are all 4 motors actually turning?',
               'Tyre slip: drive rollers spinning while drum stays stationary is a common misread as "no motion"',
-              'Verify rotation direction at each tyre bank — a reversed motor pair can cancel net drum torque exactly']}
+              'Verify rotation direction at each tyre bank — a reversed motor pair can cancel net drum torque exactly']},
+      {rank:6, name:'PLC interlock holding drive off', lk:'M',
+       measures:[
+         {port:'PLC / HMI', desc:'Active alarms or interlocks', val:'Any permissive not satisfied?', type:'warn'},
+         {port:'XA / XB', desc:'Solenoid command current', val:'Zero current = drive not permitted', type:'warn'},
+         {port:'Feed conveyor', desc:'Running confirmation', val:'Upstream permissive required?', type:'info'}
+       ],
+       steps:['Hydraulics are healthy — but a process interlock is preventing the drive from starting',
+              'Check PLC alarm list and HMI for any unsatisfied permissive: water flow, feed conveyor, safety gate',
+              'Measure current at XA/XB — zero current confirms drive has not been permitted by the control system',
+              'This is a very common restart fault after planned and unplanned shutdowns',
+              'Resolve the upstream permissive first; do not bypass interlocks without engineering authorisation']}
     ]
   },
   {
@@ -2882,7 +3044,18 @@ const SYMS = [
        steps:['Measure case drain temp at T2 Minimess port on each motor individually',
               'Worn cam rollers increase volumetric loss — less effective displacement per revolution',
               'Compare drain temperatures across all 4 motors; the hottest motor is the most worn',
-              'Compare current speed to the established normal baseline for this application']}
+              'Compare current speed to the established normal baseline for this application']},
+      {rank:4, name:'Worn motor output shaft bearing — internal drag', lk:'M',
+       measures:[
+         {port:'Motor housing', desc:'Bearing temperature', val:'>10°C above peers = suspect', type:'warn'},
+         {port:'Motor shaft', desc:'Manual rotation resistance', val:'Stiffer than other motors?', type:'caut'},
+         {port:'T2 (motor)', desc:'Case drain temperature', val:'Elevated on affected motor', type:'warn'}
+       ],
+       steps:['A worn output shaft bearing creates internal drag — the motor turns but with higher resistance',
+              'Compare bearing housing temperature across all 4 motors; the outlier is the suspect',
+              'With drive isolated, rotate each motor shaft manually — worn bearing feels stiffer or rough',
+              'Bearing wear develops gradually — compare to last maintenance inspection record',
+              'Plan bearing replacement at next scheduled outage; monitor temperature trend to judge urgency']}
     ]
   },
   {
@@ -2927,7 +3100,17 @@ const SYMS = [
        steps:['Wet ore or contaminated tyre surfaces cause intermittent slip — drum rotates in bursts',
               'Each slip event releases load suddenly — pressure drops and drum lurches forward',
               'Inspect tyre surface condition and contact geometry on all roller banks',
-              'Tyre slip at startup is common with heavy feed — use manual jog procedure to build momentum before auto control']}
+              'Tyre slip at startup is common with heavy feed — use manual jog procedure to build momentum before auto control']},
+      {rank:5, name:'Tyre surface glazed or hardened — partial grip loss', lk:'M',
+       measures:[
+         {port:'Tyre surface', desc:'Visual and tactile check', val:'Smooth/glazed = grip lost', type:'warn'},
+         {port:'Drum jerkiness', desc:'Correlation with ore wetness', val:'Worse with wet ore?', type:'info'}
+       ],
+       steps:['A glazed tyre patch loses grip intermittently — distinct from full slip which stops the drum entirely',
+              'Glazing is caused by prolonged operation with contaminated or wet ore on the contact surface',
+              'Inspect tyre surface texture on both drive-end and non-drive-end banks while drum is stationary',
+              'Lightly abrade the tyre surface with coarse abrasive to restore grip; assess for replacement',
+              'Keep tyre contact area clear of ore spillage — contamination accelerates surface glazing']}
     ]
   },
   /* ══════════════════════════════════════════
@@ -2966,7 +3149,18 @@ const SYMS = [
        steps:['Wrong viscosity grade converts to heat through inefficiency — check fluid grade against specification',
               'Running above 150 cSt significantly reduces efficiency; above 400 cSt causes severe overheating',
               'Degraded or contaminated fluid loses its viscosity index over time — sample and test regularly',
-              'ISO VG 68 at 50°C gives approximately 40 cSt — this is the recommended operating point']}
+              'ISO VG 68 at 50°C gives approximately 40 cSt — this is the recommended operating point']},
+      {rank:4, name:'Case drain return line restricted or kinked', lk:'H',
+       measures:[
+         {port:'Case drain line', desc:'Physical line condition', val:'Kinked or blocked?', type:'warn'},
+         {port:'T2 (pump case)', desc:'Case drain back-pressure', val:'Max 3 bar absolute', type:'warn'},
+         {port:'Pump shaft seal', desc:'External oil weeping', val:'Leakage = back-pressure exceeded', type:'warn'}
+       ],
+       steps:['The case drain carries heat from inside the pump housing back to the reservoir — restriction traps it',
+              'SP750 maximum permissible case drain back-pressure is 3 bar absolute — exceeding this fails seals',
+              'Inspect the full length of the drain return line for kinks, crushing, or a blocked check valve',
+              'Excess back-pressure pushes oil past the shaft seal — external leakage at the shaft is a visible sign',
+              'After clearing the restriction, verify pump case temperature returns to normal within 10 minutes']}
     ]
   },
   {
@@ -2991,7 +3185,28 @@ const SYMS = [
        steps:['Sample and test fluid viscosity — wrong grade causes efficiency losses converted to heat',
               'Running above 150 cSt reduces efficiency; above 400 cSt causes substantial efficiency loss',
               'Filter rating minimum β10 ≥75 required for both SP750 and CA 100-100',
-              'Contaminated fluid accelerates wear of pistons, cam rollers, distributor and EP spool valves']}
+              'Contaminated fluid accelerates wear of pistons, cam rollers, distributor and EP spool valves']},
+      {rank:3, name:'Cooler water supply insufficient or valve partially closed', lk:'H',
+       measures:[
+         {port:'Cooler water inlet', desc:'Water supply pressure/flow', val:'Compare to rated cooler flow', type:'warn'},
+         {port:'Cooler water valve', desc:'Valve position', val:'Must be fully open', type:'warn'},
+         {port:'Cooler in/out', desc:'Temperature differential', val:'Reduced drop = less cooling water', type:'caut'}
+       ],
+       steps:['If cooling water supply pressure has dropped or the water valve is partially closed, oil cannot reject heat',
+              'Check water supply pressure at the cooler inlet — compare to the cooler specification',
+              'Verify cooling water isolation valve is fully open — partially closed valves are a common post-maintenance oversight',
+              'Scaled or fouled cooler water passages restrict flow even when the valve is fully open — may require chemical cleaning',
+              'Reduced temperature differential across the cooler (in vs out) confirms reduced cooling water effectiveness']},
+      {rank:4, name:'High ambient temperature and marginal cooler capacity', lk:'M',
+       measures:[
+         {port:'Ambient temp', desc:'Environmental temperature', val:'Hot season / confined space?', type:'info'},
+         {port:'Cooler outlet', desc:'Oil temperature after cooler', val:'Higher than normal baseline?', type:'caut'}
+       ],
+       steps:['At Jwaneng in summer, ambient temperatures reduce cooler efficiency — the oil cannot reach its normal cool-down temperature',
+              'This is an operational condition, not a component fault — but it requires a management response',
+              'Reduce drum load or run-time during peak ambient temperature hours',
+              'Inspect cooler enclosure for restricted airflow — blocked vents or accumulated dust on fan inlet worsen the problem',
+              'If overheating is recurrent in hot season, assess whether cooler capacity is adequate for site conditions']}
     ]
   },
   {
@@ -3028,7 +3243,17 @@ const SYMS = [
        steps:['CA 100-100 radial piston: pistons push cam rollers against the cam ring to produce torque',
               'Worn cam rollers increase internal leakage and generate heat in the motor case',
               'Compare drain temperatures across all 4 motors — the temperature outlier is the faulty unit',
-              'Motors run at sub-maximum speed in this application — drain temp elevation at low speed is highly significant']}
+              'Motors run at sub-maximum speed in this application — drain temp elevation at low speed is highly significant']},
+      {rank:4, name:'Case drain check valve failed closed — heat trapped in motor', lk:'M',
+       measures:[
+         {port:'T2 (motor)', desc:'Case drain temperature rising', val:'Steady climb vs stable peers', type:'warn'},
+         {port:'Case drain line', desc:'Flow downstream of check valve', val:'No warmth = valve stuck', type:'warn'}
+       ],
+       steps:['Each CA 100-100 motor has a case drain check valve — if it fails closed, heat cannot leave the motor case',
+              'All other motors read normal temperature while the affected motor climbs continuously',
+              'Confirm by touching the drain line downstream of the check valve while motor is running',
+              'No warmth in the drain line with motor running confirms the check valve is not opening',
+              'Replace the check valve immediately — motor bearing seal temperature limits will be exceeded quickly']}
     ]
   },
   {
@@ -3066,7 +3291,17 @@ const SYMS = [
        steps:['A restricted drain line on one side raises case back-pressure — motors on that side run hotter',
               'Measure case drain pressure at T2 Minimess on each motor separately',
               'Shared drain lines: ensure ID is sufficient for combined motor drain flow at maximum drum speed',
-              'Check for kinked, collapsed, or partially blocked drain hose on the hotter side']}
+              'Check for kinked, collapsed, or partially blocked drain hose on the hotter side']},
+      {rank:4, name:'Flushing filter blocked on one bank only', lk:'M',
+       measures:[
+         {port:'F3/F4 hot bank', desc:'Flushing filter differential', val:'Higher ΔP vs cool bank', type:'warn'},
+         {port:'Flushing line', desc:'Flow comparison DE vs NDE', val:'Feel line warmth each side', type:'info'}
+       ],
+       steps:['Each motor bank has dedicated flushing filters F3/F4 — a blocked filter on one bank removes less heat',
+              'The cooled bank reads normal temperature; the side with a blocked flushing filter runs consistently hotter',
+              'Compare flushing filter differential pressure indicators on DE vs NDE sides',
+              'Replace blocked filter element; confirm temperature balance returns within 15 minutes of replacement',
+              'Fit differential pressure indicators on flushing circuit filters if not already present']}
     ]
   },
   {
@@ -3147,7 +3382,28 @@ const SYMS = [
               'SP750 uses cylindrical roller bearings — wear produces low-frequency rumble under load',
               'Bearing flushing via U-port (30 L/min) reduces bearing operating temperature and wear rate',
               'Rising case temperature near the shaft end indicates front bearing distress',
-              'If shaft seal shows leakage, bearing wear has likely damaged the seal — replacement required']}
+              'If shaft seal shows leakage, bearing wear has likely damaged the seal — replacement required']},
+      {rank:5, name:'Coupling misalignment between electric motor and pump shaft', lk:'H',
+       measures:[
+         {port:'Motor/pump coupling', desc:'Angular and parallel alignment', val:'Dial gauge check required', type:'warn'},
+         {port:'Pump noise pattern', desc:'Cyclic knock frequency', val:'Matches shaft RPM?', type:'warn'},
+         {port:'Motor current', desc:'Current variation under load', val:'Pulsing = misalignment load', type:'caut'}
+       ],
+       steps:['Coupling misalignment produces a characteristic cyclic knock at shaft rotation frequency',
+              'Distinct from cavitation — misalignment knock is mechanical and rhythmic, not continuous grinding',
+              'Check angular and parallel alignment with a dial gauge against coupling specification tolerances',
+              'Misalignment loads bearings unevenly and will cause progressive bearing failure if uncorrected',
+              'Realign motor-to-pump; noise should disappear immediately if misalignment was the cause']},
+      {rank:6, name:'Loose pump mounting bolts — structure-borne vibration noise', lk:'M',
+       measures:[
+         {port:'Pump mounting feet', desc:'Bolt torque check', val:'All fasteners to specification?', type:'warn'},
+         {port:'Pump body', desc:'Vibration amplitude', val:'Disproportionate for load?', type:'caut'}
+       ],
+       steps:['Loose mounting bolts allow the pump to rock against its base — amplifying and transmitting internal noise',
+              'The pump may function normally but noise level is disproportionate for operating conditions',
+              'Retorque all pump mounting bolts to specification; check anti-vibration mounts for cracking or deterioration',
+              'After retorqueing, compare noise — a significant reduction confirms mounting was the cause',
+              'Inspect baseframe and foundation anchor bolts — resonance can propagate from structure into pump']}
     ]
   },
   {
@@ -3222,7 +3478,18 @@ const SYMS = [
        steps:['CA 100-100: A-port inlet = CCW shaft rotation; C-port inlet = CW rotation',
               'Mixed connections cause some motors to oppose others — vibration and torque imbalance result',
               'Most commonly introduced after maintenance or motor replacement',
-              'Verify all 4 motors have identical port connections consistent with commissioning drawing']}
+              'Verify all 4 motors have identical port connections consistent with commissioning drawing']},
+      {rank:3, name:'Drum out of balance — uneven feed distribution or worn liners', lk:'M',
+       measures:[
+         {port:'MA / MB', desc:'Pressure pulse pattern', val:'Cyclic spikes vs rotation?', type:'caut'},
+         {port:'Drum', desc:'Vibration amplitude', val:'Higher than normal baseline?', type:'warn'},
+         {port:'Drum', desc:'Empty vs loaded vibration', val:'Disappears when empty = feed', type:'info'}
+       ],
+       steps:['Uneven feed distribution creates a rotating mass imbalance — hydraulics respond with cyclic pressure pulses',
+              'Pressure pulses correlate with drum rotation frequency — distinguishes this from a pure hydraulic fault',
+              'Unevenly worn lifters or a detached liner section create imbalance at a fixed angular position',
+              'Run drum empty and observe — if vibration disappears, feed distribution is the cause, not a mechanical fault',
+              'Inspect drum interior at next maintenance outage for broken lifters, worn liners, or material build-up']}
     ]
   },
   {
@@ -3246,11 +3513,21 @@ const SYMS = [
        steps:['Unstable boost causes EP control to receive varying pilot pressure — swashplate follows fluctuation',
               'Address boost root cause first (select Fluctuating boost pressure for full diagnosis)',
               'If boost confirmed stable but hunting persists — PWM controller output is next suspect',
-              'Verify solenoid command current is clean DC with correct PWM carrier frequency']}
+              'Verify solenoid command current is clean DC with correct PWM carrier frequency']},
+      {rank:3, name:'Control damping orifice blocked — underdamped swashplate response', lk:'H',
+       measures:[
+         {port:'M1 / M2', desc:'Stroking chamber oscillation', val:'High amplitude = orifice fault', type:'warn'},
+         {port:'Swashplate', desc:'Angle indicator movement', val:'Rapid large-angle cycling?', type:'warn'}
+       ],
+       steps:['The SP750 servo control circuit has a damping orifice to prevent the swashplate from responding too rapidly',
+              'If this orifice blocks with contamination, the control becomes underdamped — swashplate hunts aggressively',
+              'Hunting from a blocked orifice is more violent than PWM noise — swashplate swings through large angles',
+              'Locate and clean the damping orifice per SP750 service manual — orifice size is critical, do not enlarge it',
+              'After cleaning, verify hunting stops and swashplate settles smoothly to the commanded angle']}
     ]
   },
   /* ══════════════════════════════════════════
-     NEW v7.7 ADDITIONS
+     NEW v7.6 ADDITIONS
   ══════════════════════════════════════════ */
   {
     id:'p8', cat:'PRESSURE', label:'Boost + main both fluctuating', chip:'SYSTEM HUNT', col:'#8F5506',
@@ -3346,6 +3623,100 @@ const SYMS = [
               'Higher mechanical load = higher hydraulic pressure demand = more heat generated in those motors',
               'Inspect tyre surface condition and roller contact geometry on the overloaded bank',
               'Drum axial drift can cause one bank to carry full load while the other partially unloads']}
+    ]
+  },
+
+  /* ══════════════════════════════════════════
+     v7.6 NEW — COUPLING FAILURE + COOLER PUMP
+  ══════════════════════════════════════════ */
+  {
+    id:'cx1', cat:'DRIVE', label:'Motor running — all pumps stopped', chip:'COUPLING FAIL', col:'#B02E28',
+    hl:{pump:'red', cooler:'red'},
+    cascade:'The electric motor is running — you can hear it and the ammeter shows no-load current — but there is zero boost, zero main pressure, and no cooler flow. All three pumps share a single drive shaft. When the flexible coupling between the motor and the pump assembly fails, the motor spins freely and all pumps stop simultaneously. This is a critical shutdown condition: no cooling, no drive, no pressure.',
+    faults:[
+      {rank:1, name:'Flexible coupling element failed — all pumps decoupled', lk:'H',
+       measures:[
+         {port:'Motor', desc:'Audible tone', val:'Light / unloaded — no drive noise', type:'warn'},
+         {port:'Motor ammeter', desc:'Running current', val:'No-load current only = no pump load', type:'warn'},
+         {port:'MK4', desc:'Boost pressure', val:'Zero despite motor running', type:'warn'},
+         {port:'Pump shaft', desc:'Physical rotation', val:'Shaft stationary while motor turns?', type:'warn'}
+       ],
+       steps:['STOP THE MOTOR — no cooling means no oil temperature control; damage escalates rapidly',
+              'The defining diagnostic: motor sounds light, ammeter reads no-load — all pump load is gone simultaneously',
+              'Feel or observe the pump input shaft while motor is running — if shaft is stationary, coupling has failed',
+              'Inspect the flexible coupling element (spider, jaw, or disc): sheared, split, or missing spider is the most common failure mode',
+              'Check coupling jaw faces for wear — excessive clearance allows shock loading that accelerates element failure',
+              'Replace the coupling element and inspect jaw faces; replace hubs if faces are worn beyond tolerance',
+              'Before restart, inspect all three pump sections for heat damage from running without cooling flow']},
+      {rank:2, name:'Coupling keyway or shaft key sheared', lk:'H',
+       measures:[
+         {port:'Pump input shaft', desc:'Axial play', val:'Movement = key failed', type:'warn'},
+         {port:'Coupling hub', desc:'Rotational play vs shaft', val:'Hub spinning on shaft?', type:'warn'}
+       ],
+       steps:['A sheared key allows the coupling hub to spin on the pump shaft — all pumps stop but motor turns freely',
+              'Distinguishable from element failure by rotating play between the hub and shaft',
+              'Remove coupling guard and gently apply load — if hub rotates on the shaft, key is sheared',
+              'Replace key and inspect keyway for broaching or cracking — an oversized keyway allows repeat shearing',
+              'Check motor-to-pump alignment before replacement — misalignment accelerates coupling shock loading']},
+      {rank:3, name:'Coupling hub loose on shaft — inadequate interference fit', lk:'M',
+       measures:[
+         {port:'Coupling hub', desc:'Axial and radial movement', val:'Any movement = loose hub', type:'warn'},
+         {port:'Shaft surface', desc:'Fretting marks at hub', val:'Fretting = hub has been moving', type:'warn'}
+       ],
+       steps:['A loose coupling hub slips intermittently — pumps may work at light load but stop under full demand',
+              'Fretting corrosion marks on the shaft surface at the hub location confirm relative movement has occurred',
+              'Inspect interference fit dimension — hub bore may have grown from thermal cycling or impact',
+              'Re-fit hub to correct interference or replace hub if bore has grown beyond tolerance',
+              'Verify correct installation torque on any retaining nut or locking arrangement']}
+    ]
+  },
+  {
+    id:'cp1', cat:'THERMAL', label:'Hydraulic oil overheating — no cooler flow', chip:'COOLER PUMP', col:'#B02E28',
+    hl:{cooler:'red', pump:'amber'},
+    cascade:'The hydraulic drive is operating normally — boost and main pressure are fine — but oil temperature is climbing continuously with no other thermal fault present. The cooler circulation pump section has failed or its circuit is blocked. Without cooler flow, the oil has no path to reject heat. Temperature will climb to component limits if not addressed.',
+    faults:[
+      {rank:1, name:'Cooler pump section failed — no circulation flow', lk:'H',
+       measures:[
+         {port:'Cooler inlet line', desc:'Flow confirmed', val:'Feel for flow / use flow meter', type:'warn'},
+         {port:'System oil temp', desc:'Temperature trend', val:'Continuous rise = no cooling', type:'warn'},
+         {port:'Cooler pump', desc:'Audible output noise', val:'Silent = pump not delivering', type:'warn'}
+       ],
+       steps:['Verify cooler circuit flow first — touch or feel the cooler inlet and outlet lines while drive is running',
+              'No temperature difference across a working cooler with no flow confirms the pump is not delivering',
+              'Check if the cooler pump shares the same drive shaft as the main pump — confirm shaft is rotating',
+              'Inspect cooler pump internal components for wear, damaged gears, or vane failure',
+              'A failed cooler pump section requires removal and inspection; do not continue running above 80°C oil temperature']},
+      {rank:2, name:'Cooler pump suction blocked or air-locked', lk:'H',
+       measures:[
+         {port:'Cooler pump inlet', desc:'Suction line condition', val:'Blockage or collapse?', type:'warn'},
+         {port:'Cooler circuit', desc:'Oil flow sound', val:'Gurgling = air in circuit', type:'caut'}
+       ],
+       steps:['A blocked or air-locked suction stops cooler flow even if the pump is mechanically intact',
+              'Inspect the cooler pump suction strainer — separate from the main pump strainer in some configurations',
+              'Check suction hose for collapse or air ingress at fittings',
+              'Prime the cooler circuit after any maintenance involving draining or line disconnection',
+              'Confirm cooler flow is restored before restarting the drive after repair']},
+      {rank:3, name:'Cooler circuit isolation valve closed', lk:'M',
+       measures:[
+         {port:'Cooler circuit valve', desc:'Valve position', val:'Must be fully open', type:'warn'},
+         {port:'System temp', desc:'Rise rate vs normal', val:'Rapid rise = valve fault', type:'caut'}
+       ],
+       steps:['An isolation valve left closed after cooler maintenance stops all flow through the cooler circuit',
+              'Check all cooler circuit valves — inlet, outlet, and any bypass valves',
+              'This is a post-maintenance fault — check valve positions after every cooler service or inspection',
+              'Temperature rise will be immediate and continuous if the valve is fully closed',
+              'Open valve and verify temperature stabilises; confirm cooler is not damaged from the hot-running period']},
+      {rank:4, name:'Cooler heat exchanger fouled or blocked', lk:'M',
+       measures:[
+         {port:'Cooler inlet temp', desc:'Oil temperature in', val:'High vs outlet?', type:'info'},
+         {port:'Cooler outlet temp', desc:'Oil temperature out', val:'Minimal drop = fouled', type:'warn'},
+         {port:'Cooler water/air', desc:'Cooling medium supply', val:'Confirmed adequate?', type:'info'}
+       ],
+       steps:['Pump is circulating oil but the cooler cannot reject the heat — internal fouling is the cause',
+              'A fouled heat exchanger shows minimal temperature drop from inlet to outlet despite confirmed flow',
+              'In mine environments, scale and ore dust accumulate rapidly in cooler cores and water passages',
+              'Chemical flush the cooler core using an approved descaling agent; verify temperature drop recovers',
+              'If air-cooled, inspect fins for dust and ore fines blockage — clean with compressed air or water jet']}
     ]
   }
 ];
@@ -3968,6 +4339,9 @@ const SYM_AXES = {
   th3:{ temp_motor:'hot'},
   th4:{ temp_side:'imbalanced'},
   th7:{ temp_motor:'outlier'},
+  cp1:{ temp_sys:'hot'  },
+  // coupling failure: all-pumps-stopped despite motor running
+  cx1:{ boost:'absent', main:'absent', drum:'stopped' },
 };
 
 // Mutually exclusive value pairs per axis
